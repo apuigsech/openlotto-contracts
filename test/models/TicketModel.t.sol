@@ -18,6 +18,8 @@ contract wrapTicketModel {
 contract testTicketModel is Test {
     using TicketModel for TicketModel.TicketItem;
 
+    TicketModel.TicketItem ticket_storage;
+
     function _newFilledTicket()
         internal pure
         returns(TicketModel.TicketItem memory ticket)
@@ -25,6 +27,16 @@ contract testTicketModel is Test {
         ticket.LotteryID = 1;
         ticket.LotteryRoundInit = 1;
         ticket.LotteryRoundFini = 1;
+    }
+
+    function testItemStorageGas()
+        public
+    {
+        vm.pauseGasMetering();
+        TicketModel.TicketItem memory ticket = _newFilledTicket();
+        vm.resumeGasMetering();
+
+        ticket_storage = ticket;
     }
 
     function testIsValid()

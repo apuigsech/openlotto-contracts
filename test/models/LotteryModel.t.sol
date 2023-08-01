@@ -18,6 +18,8 @@ contract wrapLotteryModel {
 contract testLotteryModel is Test {
     using LotteryModel for LotteryModel.LotteryItem;
 
+    LotteryModel.LotteryItem lottery_storage;
+
     function _newFilledLottery()
         internal pure
         returns(LotteryModel.LotteryItem memory lottery)
@@ -25,6 +27,16 @@ contract testLotteryModel is Test {
         lottery.Name = "dummy";
         lottery.Rounds = 10;
         lottery.RoundBlocks = 100;
+    }
+
+    function testItemStorageGas() 
+        public
+    {
+        vm.pauseGasMetering();
+        LotteryModel.LotteryItem memory lottery = _newFilledLottery();
+        vm.resumeGasMetering();
+
+        lottery_storage = lottery;
     }
 
     function testIsValid()
