@@ -15,6 +15,31 @@ contract wrapTicketModel {
     }
 }
 
+contract wrapTicketModelStorage {
+    using TicketModelStorage for TicketModelStorage.TicketStorage;
+
+    TicketModelStorage.TicketStorage data;
+
+    function set(uint32 id, TicketModel.TicketItem calldata ticket)
+        public
+    {
+        data.set(id, ticket);        
+    }
+
+    function unset(uint32 id)
+        public
+    {
+        data.unset(id);
+    }
+
+    function get(uint32 id)
+        public view
+        returns (TicketModel.TicketItem memory ticket)
+    {
+        ticket = data.get(id);
+    }    
+}
+
 contract testTicketModel is Test {
     using TicketModel for TicketModel.TicketItem;
 
@@ -59,5 +84,70 @@ contract testTicketModel is Test {
 
         ticket = _newFilledTicket();
         wrap.isValid(ticket);
+    }
+}
+
+contract testTicketModelStorage is Test {
+    function _newFilledTicket()
+        internal pure
+        returns(TicketModel.TicketItem memory ticket)
+    {
+        ticket.LotteryID = 1;
+        ticket.LotteryRoundInit = 1;
+        ticket.LotteryRoundFini = 1;
+    }
+
+    function testSet()
+        public
+    {
+        wrapTicketModelStorage wrap = new wrapTicketModelStorage(); 
+
+        TicketModel.TicketItem memory ticket;
+
+        ticket = _newFilledTicket(); 
+        wrap.set(1, ticket);
+        wrap.get(1);
+    }
+
+    function testUnset()
+        public
+    {
+        wrapTicketModelStorage wrap = new wrapTicketModelStorage(); 
+
+        TicketModel.TicketItem memory ticket;
+
+        ticket = _newFilledTicket(); 
+        wrap.set(1, ticket);
+        wrap.get(1);
+
+        wrap.unset(1);
+
+        vm.expectRevert(TicketModelStorage.InvalidID.selector);
+        wrap.get(1);
+    }
+
+    function testGet()
+        public
+    {
+        wrapTicketModelStorage wrap = new wrapTicketModelStorage(); 
+
+        TicketModel.TicketItem memory ticket;
+
+        ticket = _newFilledTicket(); 
+        ticket.LotteryID = 1;
+        wrap.set(1, ticket);
+        ticket = _newFilledTicket(); 
+        ticket.LotteryID = 2;
+        wrap.set(2, ticket);
+        ticket = _newFilledTicket(); 
+        ticket.LotteryID = 3;
+        wrap.set(3, ticket);
+
+        ticket = wrap.get(1);
+        assertEq(ticket.LotteryID, 1);
+        ticket = wrap.get(2);
+        assertEq(ticket.LotteryID, 2);
+        ticket = wrap.get(3);
+        assertEq(ticket.LotteryID, 3);    
     }
 }

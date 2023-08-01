@@ -15,6 +15,32 @@ contract wrapLotteryModel {
     }
 }
 
+contract wrapLotteryModelStorage {
+    using LotteryModelStorage for LotteryModelStorage.LotteryStorage;
+
+    LotteryModelStorage.LotteryStorage data;
+
+    function set(uint32 id, LotteryModel.LotteryItem calldata lottery)
+        public
+    {
+        data.set(id, lottery);        
+    }
+
+    function unset(uint32 id)
+        public
+    {
+        data.unset(id);
+    }
+
+    function get(uint32 id)
+        public view
+        returns (LotteryModel.LotteryItem memory lottery)
+    {
+        lottery = data.get(id);
+    }    
+}
+
+
 contract testLotteryModel is Test {
     using LotteryModel for LotteryModel.LotteryItem;
 
@@ -64,4 +90,69 @@ contract testLotteryModel is Test {
         lottery = _newFilledLottery();
         wrap.isValid(lottery);
     }  
+}
+
+contract testLotteryModelStorage is Test {
+    function _newFilledLottery()
+        internal pure
+        returns(LotteryModel.LotteryItem memory lottery)
+    {
+        lottery.Name = "dummy";
+        lottery.Rounds = 10;
+        lottery.RoundBlocks = 100;
+    }
+
+    function testSet()
+        public
+    {
+        wrapLotteryModelStorage wrap = new wrapLotteryModelStorage(); 
+
+        LotteryModel.LotteryItem memory lottery;
+
+        lottery = _newFilledLottery(); 
+        wrap.set(1, lottery);
+        wrap.get(1);
+    }
+
+    function testUnset()
+        public
+    {
+        wrapLotteryModelStorage wrap = new wrapLotteryModelStorage(); 
+
+        LotteryModel.LotteryItem memory lottery;
+
+        lottery = _newFilledLottery(); 
+        wrap.set(1, lottery);
+        wrap.get(1);
+
+        wrap.unset(1);
+
+        vm.expectRevert(LotteryModelStorage.InvalidID.selector);
+        wrap.get(1);
+    }
+
+    function testGet()
+        public
+    {
+        wrapLotteryModelStorage wrap = new wrapLotteryModelStorage(); 
+
+        LotteryModel.LotteryItem memory lottery;
+
+        lottery = _newFilledLottery(); 
+        lottery.Name = "one";
+        wrap.set(1, lottery);
+        lottery = _newFilledLottery(); 
+        lottery.Name = "two";
+        wrap.set(2, lottery);
+        lottery = _newFilledLottery(); 
+        lottery.Name = "three";
+        wrap.set(3, lottery);
+
+        lottery = wrap.get(1);
+        assertEq(lottery.Name, "one");
+        lottery = wrap.get(2);
+        assertEq(lottery.Name, "two");
+        lottery = wrap.get(3);
+        assertEq(lottery.Name, "three");      
+    }
 }

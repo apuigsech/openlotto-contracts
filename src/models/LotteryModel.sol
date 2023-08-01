@@ -36,5 +36,47 @@ library LotteryModel {
         lottery.BetPrice = 0;
         lottery.JackpotMin = 0;
     }
+}
 
+
+library LotteryModelStorage {
+    using LotteryModel for LotteryModel.LotteryItem;
+
+    error InvalidID();
+
+    struct LotteryStorage {
+        mapping (uint32 => LotteryModel.LotteryItem) LotteryMap;
+    }
+
+    function set(LotteryStorage storage data, uint32 id, LotteryModel.LotteryItem calldata lottery)
+        internal
+        isValid(lottery)
+    {
+        data.LotteryMap[id] = lottery;        
+    }
+
+    function unset(LotteryStorage storage data, uint32 id)
+        internal
+    {
+        delete data.LotteryMap[id];
+    }
+
+    function get(LotteryStorage storage data, uint32 id)
+        internal view
+        exist(data, id)
+        returns (LotteryModel.LotteryItem storage lottery)
+    {
+        lottery = data.LotteryMap[id];
+
+    }
+
+    modifier exist(LotteryStorage storage data, uint32 id) {
+        if (data.LotteryMap[id].Rounds == 0) { revert InvalidID(); }
+        _;
+    }
+
+    modifier isValid(LotteryModel.LotteryItem calldata lottery) {
+        LotteryModel.isValid(lottery);
+        _;
+    }
 }
