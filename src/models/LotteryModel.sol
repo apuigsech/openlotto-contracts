@@ -2,10 +2,14 @@
 pragma solidity ^0.8.19;
 
 library LotteryModel {
+    error InvalidName();
+    error InvalidRoundsConfiguration();
+
     struct LotteryItem{
         string Name;                    // Human-readable identifier for the lottery.
 
         uint256 InitBlock;              // Block number at which the lottery rounds are initialized or started.
+
         uint32 Rounds;                  // Number of rounds or iterations for the lottery (many times the lottery will be played).
         uint16 RoundBlocks;             // Number of blocks between each round.
 
@@ -14,9 +18,12 @@ library LotteryModel {
         uint256 JackpotMin;             // Minimum size of the lottery jackpot.
     }
 
-    function isValid(LotteryModel.LotteryItem calldata lottery) 
+    function isValid(LotteryModel.LotteryItem memory lottery) 
         internal pure
-    {}
+    {
+        if (bytes(lottery.Name).length == 0) { revert InvalidName(); }
+        if (lottery.Rounds == 0 || lottery.RoundBlocks == 0) { revert InvalidRoundsConfiguration(); }
+    }
 
     function newEmptyLottery()
         internal pure
