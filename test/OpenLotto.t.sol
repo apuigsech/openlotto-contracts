@@ -197,6 +197,16 @@ contract testOpenLotto is Test {
         assertEq(distribution_pool_0.balance, 0.1 ether);
         assertEq(distribution_pool_1.balance, 0.075 ether); 
         assertEq(distribution_pool_2.balance, 0.05 ether);
+        assertEq(openlotto.Reserve(lottery_id), 0.025 ether);
+
+        ticket = ModelsHelpers.newFilledTicket();
+        ticket.LotteryID = lottery_id;
+        openlotto.BuyTicket{value: 1 ether}(ticket);
+
+        assertEq(distribution_pool_0.balance, 0.2 ether);
+        assertEq(distribution_pool_1.balance, 0.15 ether); 
+        assertEq(distribution_pool_2.balance, 0.1 ether);
+        assertEq(openlotto.Reserve(lottery_id), 0.05 ether);
     }    
 
     function testReadTicket()

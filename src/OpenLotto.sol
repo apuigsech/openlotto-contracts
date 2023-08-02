@@ -19,6 +19,8 @@ contract OpenLotto is AccessControl {
     LotteryDatabase lottery_db;
     TicketDatabase ticket_db;
 
+    mapping(uint32 => uint256) public Reserve;
+
     constructor(LotteryDatabase _lottery_db, TicketDatabase _ticket_db) {
         lottery_db = _lottery_db;
         ticket_db = _ticket_db;
@@ -31,6 +33,7 @@ contract OpenLotto is AccessControl {
         onlyRole(LOTTERY_MANAGER_ROLE)
         returns(uint32 id)
     {
+        lottery.isValid();
         return lottery_db.Create(lottery);
     }
 
@@ -58,7 +61,7 @@ contract OpenLotto is AccessControl {
                 (bool sent,) = payable(lottery.DistributionPoolTo[i]).call{value: distributeValue.unwrap()}("");
                 if (!sent) revert DistributionFailed();
             } else {
-                // TODO: Implement Reserve.
+                Reserve[ticket.LotteryID] += distributeValue.unwrap();
             }
         }        
 
