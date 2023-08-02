@@ -29,10 +29,24 @@ contract OpenLotto is AccessControl {
         return lottery_db.Create(lottery);
     }
 
+    function ReadLottery(uint32 id)
+        public view
+        returns(LotteryModel.LotteryItem memory lottery)
+    {
+        return lottery_db.Read(id);
+    }
+
     function BuyTicket(TicketModel.TicketItem calldata ticket) 
         public
         returns(uint32 id)
     {
         return ticket_db.Create(ticket);
+    }
+
+    function ReadTicket(uint32 id)
+        public
+        returns(TicketModel.TicketItem memory ticket)
+    {
+        return ticket_db.Read(id);
     }
 }

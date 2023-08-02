@@ -14,7 +14,10 @@ contract testOpenLotto is Test {
 
     address lottery_manager_role = makeAddr("lottery_manager_role");
 
-    function _newFilledLottery() internal pure returns (LotteryModel.LotteryItem memory lottery) {
+    function _newFilledLottery() 
+        internal pure 
+        returns (LotteryModel.LotteryItem memory lottery)
+    {
         lottery.Name = "dummy";
         lottery.Rounds = 10;
         lottery.RoundBlocks = 100;
@@ -87,6 +90,34 @@ contract testOpenLotto is Test {
         vm.stopPrank();
     } 
 
+    function testReadLottery() 
+        public
+    {
+        LotteryModel.LotteryItem memory lottery;
+
+        vm.expectRevert(LotteryModelStorage.InvalidID.selector);
+        lottery = openlotto.ReadLottery(0);
+
+        vm.startPrank(lottery_manager_role);
+        lottery = _newFilledLottery();
+        lottery.Name = "one";
+        uint32 id_1 = openlotto.CreateLottery(lottery);
+        lottery = _newFilledLottery();
+        lottery.Name = "two";
+        uint32 id_2 = openlotto.CreateLottery(lottery);
+        lottery = _newFilledLottery();
+        lottery.Name = "three";
+        uint32 id_3 = openlotto.CreateLottery(lottery);
+        vm.stopPrank();
+
+        lottery = openlotto.ReadLottery(id_1);
+        assertEq(lottery.Name, "one");
+        lottery = openlotto.ReadLottery(id_2);
+        assertEq(lottery.Name, "two");
+        lottery = openlotto.ReadLottery(id_3);
+        assertEq(lottery.Name, "three");    
+    }
+
     function testBuyTicket() 
         public
     {
@@ -107,6 +138,11 @@ contract testOpenLotto is Test {
         assertEq(openlotto.BuyTicket(ticket), 1);
         assertEq(openlotto.BuyTicket(ticket), 2);
         assertEq(openlotto.BuyTicket(ticket), 3);
+    }
+
+    function testReadTicket()
+        public
+    {
     }
 
     function _accessControlUnauthorizedAccount(address account, bytes32 role) 
