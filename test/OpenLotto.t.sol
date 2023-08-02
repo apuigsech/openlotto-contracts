@@ -121,20 +121,36 @@ contract testOpenLotto is Test {
     function testBuyTicket() 
         public
     {
+        LotteryModel.LotteryItem memory lottery;
         TicketModel.TicketItem memory ticket;
 
+        vm.startPrank(lottery_manager_role);
+        lottery = _newFilledLottery();
+        lottery.Name = "one";
+        uint32 lottery_id = openlotto.CreateLottery(lottery);
+        vm.stopPrank();
+
+
         ticket = _newFilledTicket();
+        ticket.LotteryID = 0;
+        vm.expectRevert(LotteryModelStorage.InvalidID.selector);
+        openlotto.BuyTicket(ticket);
+
+        ticket = _newFilledTicket();
+        ticket.LotteryID = lottery_id;
         ticket.LotteryRoundInit = 0;
         vm.expectRevert(TicketModel.InvalidRounds.selector);
         openlotto.BuyTicket(ticket);
 
         ticket = _newFilledTicket();
+        ticket.LotteryID = lottery_id;
         ticket.LotteryRoundInit = 5;
         ticket.LotteryRoundInit = 4;
         vm.expectRevert(TicketModel.InvalidRounds.selector);
         openlotto.BuyTicket(ticket);
 
         ticket = _newFilledTicket();
+        ticket.LotteryID = lottery_id;
         assertEq(openlotto.BuyTicket(ticket), 1);
         assertEq(openlotto.BuyTicket(ticket), 2);
         assertEq(openlotto.BuyTicket(ticket), 3);

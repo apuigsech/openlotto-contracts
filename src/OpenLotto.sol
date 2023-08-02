@@ -40,6 +40,7 @@ contract OpenLotto is AccessControl {
         public
         returns(uint32 id)
     {
+        LotteryModel.LotteryItem memory lottery = lottery_db.Read(ticket.LotteryID);
         return ticket_db.Create(ticket);
     }
 
