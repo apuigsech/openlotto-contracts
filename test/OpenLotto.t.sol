@@ -112,6 +112,7 @@ contract testOpenLotto is Test {
         vm.startPrank(lottery_manager_role);
         lottery = ModelsHelpers.newFilledLottery();
         lottery.Name = "one";
+        lottery.Rounds = 10;
         uint32 lottery_id = openlotto.CreateLottery(lottery);
         vm.stopPrank();
 
@@ -135,8 +136,18 @@ contract testOpenLotto is Test {
 
         ticket = ModelsHelpers.newFilledTicket();
         ticket.LotteryID = lottery_id;
+        ticket.LotteryRoundInit = 1;
+        ticket.LotteryRoundFini = 11;
+        vm.expectRevert(LotteryModel.InvalidTicketRounds.selector);
+        openlotto.BuyTicket(ticket);
+
+        ticket = ModelsHelpers.newFilledTicket();
+        ticket.LotteryID = lottery_id;
+        ticket.LotteryRoundFini = 1;
         assertEq(openlotto.BuyTicket(ticket), 1);
+        ticket.LotteryRoundFini = 5;
         assertEq(openlotto.BuyTicket(ticket), 2);
+        ticket.LotteryRoundFini = 10;
         assertEq(openlotto.BuyTicket(ticket), 3);
     }
 

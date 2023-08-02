@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
+import "@models/TicketModel.sol";
+
 /// @title Library containing the data model and functions related to the LotteryItem struct.
 library LotteryModel {
     // Custom errors used for validation.
@@ -8,6 +10,8 @@ library LotteryModel {
     error InvalidName();
     /// @dev Error thrown when the rounds configuration of the lottery is invalid (zero rounds or round blocks).
     error InvalidRoundsConfiguration();
+    /// @dev Error thrown when the ticket rounds are not compatible with the lottery.
+    error InvalidTicketRounds(); 
 
     /// @dev Data structure representing a specific lottery.
     struct LotteryItem {
@@ -29,6 +33,13 @@ library LotteryModel {
     {
         if (bytes(lottery.Name).length == 0) revert InvalidName();
         if (lottery.Rounds == 0 || lottery.RoundBlocks == 0) revert InvalidRoundsConfiguration();
+    }
+
+    // @dev Function to validate whether a ticket item is compatible for a specific lottery item.
+    function isValidTicket(LotteryModel.LotteryItem memory lottery, TicketModel.TicketItem memory ticket) 
+        internal pure
+    {
+        if (ticket.LotteryRoundFini > lottery.Rounds) revert InvalidTicketRounds();
     }
 
     /// @dev Function to create an empty LotteryItem.
@@ -88,7 +99,7 @@ library LotteryModelStorage {
         _;
     }
 
-    /// @dev Modifier to check if a LotteryItem calldata is valid.
+    /// @dev Modifier to check if a LotteryItem is valid.
     modifier isValid(LotteryModel.LotteryItem calldata lottery) {
         LotteryModel.isValid(lottery);
         _;

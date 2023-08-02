@@ -9,6 +9,8 @@ import "@database/LotteryDatabase.sol";
 import "@database/TicketDatabase.sol";
 
 contract OpenLotto is AccessControl {
+    using LotteryModel for LotteryModel.LotteryItem;
+
     bytes32 public constant LOTTERY_MANAGER_ROLE = keccak256("LOTTERY_MANAGER_ROLE");
 
     LotteryDatabase lottery_db;
@@ -41,6 +43,7 @@ contract OpenLotto is AccessControl {
         returns(uint32 id)
     {
         LotteryModel.LotteryItem memory lottery = lottery_db.Read(ticket.LotteryID);
+        lottery.isValidTicket(ticket);
         return ticket_db.Create(ticket);
     }
 

@@ -12,6 +12,7 @@ library ModelsHelpers {
         returns (LotteryModel.LotteryItem memory lottery)
     {
         lottery.Name = "dummy";
+        lottery.InitBlock = 1000;
         lottery.Rounds = 10;
         lottery.RoundBlocks = 100;
     }
@@ -20,7 +21,7 @@ library ModelsHelpers {
         internal pure
         returns(TicketModel.TicketItem memory ticket)
     {
-        ticket.LotteryID = 1;
+        ticket.LotteryID = 0;
         ticket.LotteryRoundInit = 1;
         ticket.LotteryRoundFini = 1;
     }
