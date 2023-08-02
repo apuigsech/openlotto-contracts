@@ -5,3 +5,4 @@ openzeppelin/=lib/openzeppelin-contracts/contracts/
 @src=src/
 @models=src/models
 @database=src/database
+@test=test/

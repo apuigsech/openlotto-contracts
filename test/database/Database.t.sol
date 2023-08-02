@@ -2,6 +2,7 @@
 pragma solidity ^0.8.19;
 
 import "forge-std/Test.sol";
+import "@test/helpers/RevertDataHelpers.sol";
 
 import "@src/database/Database.sol";
 
@@ -102,7 +103,7 @@ contract DatabaseTest is Test {
         public
     {
         // Test CREATE_ROLE authorization
-        vm.expectRevert(_accessControlUnauthorizedAccount(regular_role, database.CREATE_ROLE()));
+        vm.expectRevert(RevertDataHelpers.accessControlUnauthorizedAccount(regular_role, database.CREATE_ROLE()));
         vm.prank(regular_role);
         database.wrap_create();
 
@@ -110,7 +111,7 @@ contract DatabaseTest is Test {
         uint32 id = database.wrap_create();
 
         // Test READ_ROLE authorization
-        vm.expectRevert(_accessControlUnauthorizedAccount(regular_role, database.READ_ROLE()));
+        vm.expectRevert(RevertDataHelpers.accessControlUnauthorizedAccount(regular_role, database.READ_ROLE()));
         vm.prank(regular_role);
         database.wrap_read(id);
 
@@ -118,7 +119,7 @@ contract DatabaseTest is Test {
         database.wrap_read(id);
 
         // Test UPDATE_ROLE authorization
-        vm.expectRevert(_accessControlUnauthorizedAccount(regular_role, database.UPDATE_ROLE()));
+        vm.expectRevert(RevertDataHelpers.accessControlUnauthorizedAccount(regular_role, database.UPDATE_ROLE()));
         vm.prank(regular_role);
         database.wrap_update(id);
 
@@ -126,7 +127,7 @@ contract DatabaseTest is Test {
         database.wrap_update(id);
 
         // Test DELETE_ROLE authorization
-        vm.expectRevert(_accessControlUnauthorizedAccount(regular_role, database.DELETE_ROLE()));
+        vm.expectRevert(RevertDataHelpers.accessControlUnauthorizedAccount(regular_role, database.DELETE_ROLE()));
         vm.prank(regular_role);
         database.wrap_delete(id);
 
@@ -187,18 +188,6 @@ contract DatabaseTest is Test {
         vm.expectRevert(Database.InvalidID.selector);
         database.wrap_delete(id + 1);
         vm.stopPrank();
-    }
-
-    function _accessControlUnauthorizedAccount(address account, bytes32 role) 
-        internal pure 
-        returns(bytes memory) 
-    {
-        return abi.encodePacked(
-            IAccessControl.AccessControlUnauthorizedAccount.selector,
-            uint96(0),
-            account,
-            role
-        );
     }
 }
 

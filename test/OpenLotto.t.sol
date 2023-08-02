@@ -2,8 +2,11 @@
 pragma solidity ^0.8.19;
 
 import "forge-std/Test.sol";
+import "@test/helpers/ModelsHelpers.sol";
+import "@test/helpers/RevertDataHelpers.sol";
 
 import "@src/OpenLotto.sol";
+
 
 
 contract testOpenLotto is Test {
@@ -13,24 +16,6 @@ contract testOpenLotto is Test {
     TicketDatabase ticket_db;
 
     address lottery_manager_role = makeAddr("lottery_manager_role");
-
-    function _newFilledLottery() 
-        internal pure 
-        returns (LotteryModel.LotteryItem memory lottery)
-    {
-        lottery.Name = "dummy";
-        lottery.Rounds = 10;
-        lottery.RoundBlocks = 100;
-    }
-
-    function _newFilledTicket()
-        internal pure
-        returns(TicketModel.TicketItem memory ticket)
-    {
-        ticket.LotteryID = 1;
-        ticket.LotteryRoundInit = 1;
-        ticket.LotteryRoundFini = 1;
-    }
 
     function setUp() 
         public
@@ -52,8 +37,8 @@ contract testOpenLotto is Test {
     {
         LotteryModel.LotteryItem memory lottery;
 
-        lottery = _newFilledLottery();
-        vm.expectRevert(_accessControlUnauthorizedAccount(address(this), openlotto.LOTTERY_MANAGER_ROLE()));
+        lottery = ModelsHelpers.newFilledLottery();
+        vm.expectRevert(RevertDataHelpers.accessControlUnauthorizedAccount(address(this), openlotto.LOTTERY_MANAGER_ROLE()));
         openlotto.CreateLottery(lottery);
 
         vm.prank(lottery_manager_role);
@@ -67,22 +52,22 @@ contract testOpenLotto is Test {
 
         vm.startPrank(lottery_manager_role);
 
-        lottery = _newFilledLottery();
+        lottery = ModelsHelpers.newFilledLottery();
         lottery.Name = "";
         vm.expectRevert(LotteryModel.InvalidName.selector);
         openlotto.CreateLottery(lottery);
 
-        lottery = _newFilledLottery();
+        lottery = ModelsHelpers.newFilledLottery();
         lottery.Rounds = 0;
         vm.expectRevert(LotteryModel.InvalidRoundsConfiguration.selector);
         openlotto.CreateLottery(lottery);
 
-        lottery = _newFilledLottery();
+        lottery = ModelsHelpers.newFilledLottery();
         lottery.RoundBlocks = 0;
         vm.expectRevert(LotteryModel.InvalidRoundsConfiguration.selector);
         openlotto.CreateLottery(lottery);
 
-        lottery = _newFilledLottery();
+        lottery = ModelsHelpers.newFilledLottery();
         assertEq(openlotto.CreateLottery(lottery), 1);
         assertEq(openlotto.CreateLottery(lottery), 2);
         assertEq(openlotto.CreateLottery(lottery), 3);
@@ -99,13 +84,13 @@ contract testOpenLotto is Test {
         lottery = openlotto.ReadLottery(0);
 
         vm.startPrank(lottery_manager_role);
-        lottery = _newFilledLottery();
+        lottery = ModelsHelpers.newFilledLottery();
         lottery.Name = "one";
         uint32 id_1 = openlotto.CreateLottery(lottery);
-        lottery = _newFilledLottery();
+        lottery = ModelsHelpers.newFilledLottery();
         lottery.Name = "two";
         uint32 id_2 = openlotto.CreateLottery(lottery);
-        lottery = _newFilledLottery();
+        lottery = ModelsHelpers.newFilledLottery();
         lottery.Name = "three";
         uint32 id_3 = openlotto.CreateLottery(lottery);
         vm.stopPrank();
@@ -125,31 +110,30 @@ contract testOpenLotto is Test {
         TicketModel.TicketItem memory ticket;
 
         vm.startPrank(lottery_manager_role);
-        lottery = _newFilledLottery();
+        lottery = ModelsHelpers.newFilledLottery();
         lottery.Name = "one";
         uint32 lottery_id = openlotto.CreateLottery(lottery);
         vm.stopPrank();
 
-
-        ticket = _newFilledTicket();
+        ticket = ModelsHelpers.newFilledTicket();
         ticket.LotteryID = 0;
         vm.expectRevert(LotteryModelStorage.InvalidID.selector);
         openlotto.BuyTicket(ticket);
 
-        ticket = _newFilledTicket();
+        ticket = ModelsHelpers.newFilledTicket();
         ticket.LotteryID = lottery_id;
         ticket.LotteryRoundInit = 0;
         vm.expectRevert(TicketModel.InvalidRounds.selector);
         openlotto.BuyTicket(ticket);
 
-        ticket = _newFilledTicket();
+        ticket = ModelsHelpers.newFilledTicket();
         ticket.LotteryID = lottery_id;
         ticket.LotteryRoundInit = 5;
         ticket.LotteryRoundInit = 4;
         vm.expectRevert(TicketModel.InvalidRounds.selector);
         openlotto.BuyTicket(ticket);
 
-        ticket = _newFilledTicket();
+        ticket = ModelsHelpers.newFilledTicket();
         ticket.LotteryID = lottery_id;
         assertEq(openlotto.BuyTicket(ticket), 1);
         assertEq(openlotto.BuyTicket(ticket), 2);
@@ -160,17 +144,4 @@ contract testOpenLotto is Test {
         public
     {
     }
-
-    function _accessControlUnauthorizedAccount(address account, bytes32 role) 
-        internal pure 
-        returns(bytes memory) 
-    {
-        return abi.encodePacked(
-            IAccessControl.AccessControlUnauthorizedAccount.selector,
-            uint96(0),
-            account,
-            role
-        );
-    }
-
 }

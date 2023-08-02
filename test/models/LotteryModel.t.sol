@@ -2,6 +2,7 @@
 pragma solidity ^0.8.19;
 
 import "forge-std/Test.sol";
+import "@test/helpers/ModelsHelpers.sol";
 
 import "@models/LotteryModel.sol";
 
@@ -46,20 +47,11 @@ contract testLotteryModel is Test {
 
     LotteryModel.LotteryItem lottery_storage;
 
-    function _newFilledLottery()
-        internal pure
-        returns(LotteryModel.LotteryItem memory lottery)
-    {
-        lottery.Name = "dummy";
-        lottery.Rounds = 10;
-        lottery.RoundBlocks = 100;
-    }
-
     function testItemStorageGas() 
         public
     {
         vm.pauseGasMetering();
-        LotteryModel.LotteryItem memory lottery = _newFilledLottery();
+        LotteryModel.LotteryItem memory lottery = ModelsHelpers.newFilledLottery();
         vm.resumeGasMetering();
 
         lottery_storage = lottery;
@@ -72,36 +64,27 @@ contract testLotteryModel is Test {
 
         LotteryModel.LotteryItem memory lottery;
 
-        lottery = _newFilledLottery();
+        lottery = ModelsHelpers.newFilledLottery();
         lottery.Name = "";
         vm.expectRevert(LotteryModel.InvalidName.selector);
         wrap.isValid(lottery);
 
-        lottery = _newFilledLottery();
+        lottery = ModelsHelpers.newFilledLottery();
         lottery.Rounds = 0;
         vm.expectRevert(LotteryModel.InvalidRoundsConfiguration.selector);
         wrap.isValid(lottery);
 
-        lottery = _newFilledLottery();
+        lottery = ModelsHelpers.newFilledLottery();
         lottery.RoundBlocks = 0;
         vm.expectRevert(LotteryModel.InvalidRoundsConfiguration.selector);
         wrap.isValid(lottery);
 
-        lottery = _newFilledLottery();
+        lottery = ModelsHelpers.newFilledLottery();
         wrap.isValid(lottery);
     }  
 }
 
 contract testLotteryModelStorage is Test {
-    function _newFilledLottery()
-        internal pure
-        returns(LotteryModel.LotteryItem memory lottery)
-    {
-        lottery.Name = "dummy";
-        lottery.Rounds = 10;
-        lottery.RoundBlocks = 100;
-    }
-
     function testSet()
         public
     {
@@ -109,7 +92,7 @@ contract testLotteryModelStorage is Test {
 
         LotteryModel.LotteryItem memory lottery;
 
-        lottery = _newFilledLottery(); 
+        lottery = ModelsHelpers.newFilledLottery(); 
         wrap.set(1, lottery);
         wrap.get(1);
     }
@@ -121,7 +104,7 @@ contract testLotteryModelStorage is Test {
 
         LotteryModel.LotteryItem memory lottery;
 
-        lottery = _newFilledLottery(); 
+        lottery = ModelsHelpers.newFilledLottery(); 
         wrap.set(1, lottery);
         wrap.get(1);
 
@@ -138,13 +121,13 @@ contract testLotteryModelStorage is Test {
 
         LotteryModel.LotteryItem memory lottery;
 
-        lottery = _newFilledLottery(); 
+        lottery = ModelsHelpers.newFilledLottery(); 
         lottery.Name = "one";
         wrap.set(1, lottery);
-        lottery = _newFilledLottery(); 
+        lottery = ModelsHelpers.newFilledLottery(); 
         lottery.Name = "two";
         wrap.set(2, lottery);
-        lottery = _newFilledLottery(); 
+        lottery = ModelsHelpers.newFilledLottery(); 
         lottery.Name = "three";
         wrap.set(3, lottery);
 

@@ -2,17 +2,12 @@
 pragma solidity ^0.8.19;
 
 import "forge-std/Test.sol";
+import "@test/helpers/ModelsHelpers.sol";
 
 import "@src/database/LotteryDatabase.sol";
 
 contract testLotteryDatabase is Test {
     LotteryDatabase database;
-
-    function _newFilledLottery() internal pure returns (LotteryModel.LotteryItem memory lottery) {
-        lottery.Name = "dummy";
-        lottery.Rounds = 10;
-        lottery.RoundBlocks = 100;
-    }
 
     function setUp()
         public 
@@ -29,22 +24,22 @@ contract testLotteryDatabase is Test {
     {
         LotteryModel.LotteryItem memory lottery;
 
-        lottery = _newFilledLottery();
+        lottery = ModelsHelpers.newFilledLottery();
         lottery.Name = "";
         vm.expectRevert(LotteryModel.InvalidName.selector);
         database.Create(lottery);
 
-        lottery = _newFilledLottery();
+        lottery = ModelsHelpers.newFilledLottery();
         lottery.Rounds = 0;
         vm.expectRevert(LotteryModel.InvalidRoundsConfiguration.selector);
         database.Create(lottery);
 
-        lottery = _newFilledLottery();
+        lottery = ModelsHelpers.newFilledLottery();
         lottery.RoundBlocks = 0;
         vm.expectRevert(LotteryModel.InvalidRoundsConfiguration.selector);
         database.Create(lottery);
 
-        lottery = _newFilledLottery();
+        lottery = ModelsHelpers.newFilledLottery();
         assertEq(database.Create(lottery), 1);
         assertEq(database.Create(lottery), 2);
         assertEq(database.Create(lottery), 3);
@@ -58,13 +53,13 @@ contract testLotteryDatabase is Test {
         vm.expectRevert(LotteryModelStorage.InvalidID.selector);
         lottery = database.Read(0);
 
-        lottery = _newFilledLottery();
+        lottery = ModelsHelpers.newFilledLottery();
         lottery.Name = "one";
         uint32 id_1 = database.Create(lottery);
-        lottery = _newFilledLottery();
+        lottery = ModelsHelpers.newFilledLottery();
         lottery.Name = "two";
         uint32 id_2 = database.Create(lottery);
-        lottery = _newFilledLottery();
+        lottery = ModelsHelpers.newFilledLottery();
         lottery.Name = "three";
         uint32 id_3 = database.Create(lottery);
 
@@ -81,19 +76,19 @@ contract testLotteryDatabase is Test {
     {
         LotteryModel.LotteryItem memory lottery;
 
-        lottery = _newFilledLottery();
+        lottery = ModelsHelpers.newFilledLottery();
         lottery.Name = "zero";
         vm.expectRevert(LotteryModelStorage.InvalidID.selector);
         database.Update(0, lottery);
 
-        lottery = _newFilledLottery();
+        lottery = ModelsHelpers.newFilledLottery();
         lottery.Name = "one";
         uint32 id_1 = database.Create(lottery);
 
         lottery = database.Read(id_1);
         assertEq(lottery.Name, "one");
 
-        lottery = _newFilledLottery();
+        lottery = ModelsHelpers.newFilledLottery();
         lottery.Name = "one again";
         database.Update(id_1, lottery);
 
@@ -109,7 +104,7 @@ contract testLotteryDatabase is Test {
         vm.expectRevert(LotteryModelStorage.InvalidID.selector);
         database.Delete(0);
 
-        lottery = _newFilledLottery();
+        lottery = ModelsHelpers.newFilledLottery();
         lottery.Name = "one";
         uint32 id_1 = database.Create(lottery);
 

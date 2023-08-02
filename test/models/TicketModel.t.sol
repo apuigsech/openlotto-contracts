@@ -2,6 +2,7 @@
 pragma solidity ^0.8.19;
 
 import "forge-std/Test.sol";
+import "@test/helpers/ModelsHelpers.sol";
 
 import "@models/TicketModel.sol";
 
@@ -45,20 +46,11 @@ contract testTicketModel is Test {
 
     TicketModel.TicketItem ticket_storage;
 
-    function _newFilledTicket()
-        internal pure
-        returns(TicketModel.TicketItem memory ticket)
-    {
-        ticket.LotteryID = 1;
-        ticket.LotteryRoundInit = 1;
-        ticket.LotteryRoundFini = 1;
-    }
-
     function testItemStorageGas()
         public
     {
         vm.pauseGasMetering();
-        TicketModel.TicketItem memory ticket = _newFilledTicket();
+        TicketModel.TicketItem memory ticket = ModelsHelpers.newFilledTicket();
         vm.resumeGasMetering();
 
         ticket_storage = ticket;
@@ -71,31 +63,23 @@ contract testTicketModel is Test {
 
         TicketModel.TicketItem memory ticket;
 
-        ticket = _newFilledTicket();
+        ticket = ModelsHelpers.newFilledTicket();
         ticket.LotteryRoundInit = 0;
         vm.expectRevert(TicketModel.InvalidRounds.selector);
         wrap.isValid(ticket);
 
-        ticket = _newFilledTicket();
+        ticket = ModelsHelpers.newFilledTicket();
         ticket.LotteryRoundInit = 5;
         ticket.LotteryRoundInit = 4;
         vm.expectRevert(TicketModel.InvalidRounds.selector);
         wrap.isValid(ticket);
 
-        ticket = _newFilledTicket();
+        ticket = ModelsHelpers.newFilledTicket();
         wrap.isValid(ticket);
     }
 }
 
 contract testTicketModelStorage is Test {
-    function _newFilledTicket()
-        internal pure
-        returns(TicketModel.TicketItem memory ticket)
-    {
-        ticket.LotteryID = 1;
-        ticket.LotteryRoundInit = 1;
-        ticket.LotteryRoundFini = 1;
-    }
 
     function testSet()
         public
@@ -104,7 +88,7 @@ contract testTicketModelStorage is Test {
 
         TicketModel.TicketItem memory ticket;
 
-        ticket = _newFilledTicket(); 
+        ticket = ModelsHelpers.newFilledTicket(); 
         wrap.set(1, ticket);
         wrap.get(1);
     }
@@ -116,7 +100,7 @@ contract testTicketModelStorage is Test {
 
         TicketModel.TicketItem memory ticket;
 
-        ticket = _newFilledTicket(); 
+        ticket = ModelsHelpers.newFilledTicket(); 
         wrap.set(1, ticket);
         wrap.get(1);
 
@@ -133,13 +117,13 @@ contract testTicketModelStorage is Test {
 
         TicketModel.TicketItem memory ticket;
 
-        ticket = _newFilledTicket(); 
+        ticket = ModelsHelpers.newFilledTicket(); 
         ticket.LotteryID = 1;
         wrap.set(1, ticket);
-        ticket = _newFilledTicket(); 
+        ticket = ModelsHelpers.newFilledTicket(); 
         ticket.LotteryID = 2;
         wrap.set(2, ticket);
-        ticket = _newFilledTicket(); 
+        ticket = ModelsHelpers.newFilledTicket(); 
         ticket.LotteryID = 3;
         wrap.set(3, ticket);
 
