@@ -15,6 +15,7 @@ library ModelsHelpers {
         lottery.InitBlock = 1000;
         lottery.Rounds = 10;
         lottery.RoundBlocks = 100;
+        lottery.BetPrice = 1 ether;
     }
 
     function newFilledTicket()

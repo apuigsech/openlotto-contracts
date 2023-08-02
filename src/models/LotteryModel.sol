@@ -18,7 +18,7 @@ library LotteryModel {
     error InvalidTicketRounds(); 
 
     // Number of entries on the distribution pool - distribuion of the income from bought tickets.
-    uint8 public constant MAX_DISTRIBUTIONPOOL = 5;
+    uint8 private constant _MAX_DISTRIBUTIONPOOL = 5;
 
     /// @dev Data structure representing a specific lottery.
     struct LotteryItem {
@@ -33,8 +33,15 @@ library LotteryModel {
 
         uint256 JackpotMin;                                         // Minimum size of the lottery jackpot.
 
-        address[MAX_DISTRIBUTIONPOOL] DistributionPoolTo;           // Destination for the distribution pool entries. (address(0) sends money to the reserve, remaining value goes to jackpot).
-        UD60x18[MAX_DISTRIBUTIONPOOL] DistributionPoolShare;        // Share (%) for the distribution pool entries.
+        address[_MAX_DISTRIBUTIONPOOL] DistributionPoolTo;           // Destination for the distribution pool entries. (address(0) sends money to the reserve, remaining value goes to jackpot).
+        UD60x18[_MAX_DISTRIBUTIONPOOL] DistributionPoolShare;        // Share (%) for the distribution pool entries.
+    }
+
+    function MAX_DISTRIBUTIONPOOL()
+        internal  pure
+        returns(uint8)
+    {
+        return _MAX_DISTRIBUTIONPOOL;
     }
 
     /// @dev Function to validate whether a lottery item is valid (has a name and valid rounds configuration).
@@ -45,7 +52,7 @@ library LotteryModel {
         if (lottery.Rounds == 0 || lottery.RoundBlocks == 0) revert InvalidRoundsConfiguration();
         
         UD60x18 totalDistributed =  ud(0e18);
-        for (uint i ; i < MAX_DISTRIBUTIONPOOL ; i++) {
+        for (uint i ; i < _MAX_DISTRIBUTIONPOOL ; i++) {
             totalDistributed = totalDistributed + lottery.DistributionPoolShare[i];
             if (totalDistributed > ud(1e18)) revert InvalidDistributionPool();
         }

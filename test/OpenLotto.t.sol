@@ -17,6 +17,10 @@ contract testOpenLotto is Test {
 
     address lottery_manager_role = makeAddr("lottery_manager_role");
 
+    address distribution_pool_0 = makeAddr("distribution_pool_0");
+    address distribution_pool_1 = makeAddr("distribution_pool_1");
+    address distribution_pool_2 = makeAddr("distribution_pool_2");
+
     function setUp() 
         public
     {
@@ -159,6 +163,41 @@ contract testOpenLotto is Test {
         ticket.LotteryRoundFini = 10;
         assertEq(openlotto.BuyTicket(ticket), 3);
     }
+
+    function testDistributionPool()
+        public
+    {
+        LotteryModel.LotteryItem memory lottery;
+        TicketModel.TicketItem memory ticket;
+
+        vm.startPrank(lottery_manager_role);
+        lottery = ModelsHelpers.newFilledLottery();
+
+        lottery.BetPrice = 1 ether;
+        
+        lottery.DistributionPoolTo[0] = distribution_pool_0;
+        lottery.DistributionPoolShare[0] = ud(0.10e18);
+
+        lottery.DistributionPoolTo[1] = distribution_pool_1;
+        lottery.DistributionPoolShare[1] = ud(0.075e18);
+        
+        lottery.DistributionPoolTo[2] = distribution_pool_2;
+        lottery.DistributionPoolShare[2] = ud(0.05e18);
+        
+        lottery.DistributionPoolTo[3] = address(0); // Reserve.
+        lottery.DistributionPoolShare[3] = ud(0.025e18);
+    
+        uint32 lottery_id = openlotto.CreateLottery(lottery);
+        vm.stopPrank(); 
+
+        ticket = ModelsHelpers.newFilledTicket();
+        ticket.LotteryID = lottery_id;
+        openlotto.BuyTicket{value: 1 ether}(ticket);
+
+        assertEq(distribution_pool_0.balance, 0.1 ether);
+        assertEq(distribution_pool_1.balance, 0.075 ether); 
+        assertEq(distribution_pool_2.balance, 0.05 ether);
+    }    
 
     function testReadTicket()
         public

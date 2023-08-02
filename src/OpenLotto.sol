@@ -12,6 +12,8 @@ contract OpenLotto is AccessControl {
     using LotteryModel for LotteryModel.LotteryItem;
     using TicketModel for TicketModel.TicketItem;
 
+    error DistributionFailed();
+
     bytes32 public constant LOTTERY_MANAGER_ROLE = keccak256("LOTTERY_MANAGER_ROLE");
 
     LotteryDatabase lottery_db;
@@ -39,13 +41,26 @@ contract OpenLotto is AccessControl {
         return lottery_db.Read(id);
     }
 
-    function BuyTicket(TicketModel.TicketItem calldata ticket) 
-        public
+    function BuyTicket(TicketModel.TicketItem calldata ticket)
+        public payable
         returns(uint32 id)
     {
         ticket.isValid();
         LotteryModel.LotteryItem memory lottery = lottery_db.Read(ticket.LotteryID);
         lottery.isValidTicket(ticket);
+
+        UD60x18 totalValue = ud(msg.value);
+        UD60x18 remainingValue = totalValue;
+        for (uint i ; i < LotteryModel.MAX_DISTRIBUTIONPOOL() ; i++) {
+            UD60x18 distributeValue = totalValue * lottery.DistributionPoolShare[i];
+            remainingValue = remainingValue - distributeValue;
+            if (address(lottery.DistributionPoolTo[i]) != address(0)) {
+                (bool sent,) = payable(lottery.DistributionPoolTo[i]).call{value: distributeValue.unwrap()}("");
+                if (!sent) revert DistributionFailed();
+            } else {
+                // TODO: Implement Reserve.
+            }
+        }        
 
         return ticket_db.Create(ticket);
     }
