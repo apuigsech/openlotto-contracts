@@ -14,6 +14,8 @@ contract OpenLotto is AccessControl {
 
     error DistributionFailed();
 
+    error InsuficientFunds();
+
     bytes32 public constant LOTTERY_MANAGER_ROLE = keccak256("LOTTERY_MANAGER_ROLE");
 
     LotteryDatabase lottery_db;
@@ -51,6 +53,10 @@ contract OpenLotto is AccessControl {
         ticket.isValid();
         LotteryModel.LotteryItem memory lottery = lottery_db.Read(ticket.LotteryID);
         lottery.isValidTicket(ticket);
+
+        unchecked { 
+            if (msg.value < lottery.BetPrice * (1 + ticket.LotteryRoundFini - ticket.LotteryRoundInit)) revert InsuficientFunds();
+        }
 
         UD60x18 totalValue = ud(msg.value);
         UD60x18 remainingValue = totalValue;
