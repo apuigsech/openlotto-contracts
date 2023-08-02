@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-import "openzeppelin/access/AccessControl.sol";
-import "openzeppelin/utils/structs/BitMaps.sol";
+import "@openzeppelin/access/AccessControl.sol";
+import "@openzeppelin/utils/structs/BitMaps.sol";
 
 contract Database is AccessControl {
     using BitMaps for BitMaps.BitMap;

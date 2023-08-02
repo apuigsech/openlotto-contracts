@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
+import {UD60x18, ud} from "@prb/math/UD60x18.sol";
+
 import "@models/TicketModel.sol";
 
 /// @title Library containing the data model and functions related to the LotteryItem struct.
@@ -10,21 +12,29 @@ library LotteryModel {
     error InvalidName();
     /// @dev Error thrown when the rounds configuration of the lottery is invalid (zero rounds or round blocks).
     error InvalidRoundsConfiguration();
+    /// @dev Error thrown when the distribution pool exceeds the 100%.
+    error InvalidDistributionPool();
     /// @dev Error thrown when the ticket rounds are not compatible with the lottery.
     error InvalidTicketRounds(); 
 
+    // Number of entries on the distribution pool - distribuion of the income from bought tickets.
+    uint8 public constant MAX_DISTRIBUTIONPOOL = 5;
+
     /// @dev Data structure representing a specific lottery.
     struct LotteryItem {
-        string Name;                    // Human-readable identifier for the lottery.
+        string Name;                                                // Human-readable identifier for the lottery.
 
-        uint256 InitBlock;              // Block number at which the lottery rounds are initialized or started.
+        uint256 InitBlock;                                          // Block number at which the lottery rounds are initialized or started.
 
-        uint32 Rounds;                  // Number of rounds or iterations for the lottery (how many times the lottery will be played).
-        uint16 RoundBlocks;             // Number of blocks between each round.
+        uint32 Rounds;                                              // Number of rounds or iterations for the lottery (how many times the lottery will be played).
+        uint16 RoundBlocks;                                         // Number of blocks between each round.
 
-        uint256 BetPrice;               // Cost of a single bet for the lottery.
+        uint256 BetPrice;                                           // Cost of a single bet for the lottery.
 
-        uint256 JackpotMin;             // Minimum size of the lottery jackpot.
+        uint256 JackpotMin;                                         // Minimum size of the lottery jackpot.
+
+        address[MAX_DISTRIBUTIONPOOL] DistributionPoolTo;           // Destination for the distribution pool entries. (address(0) sends money to the reserve, remaining value goes to jackpot).
+        UD60x18[MAX_DISTRIBUTIONPOOL] DistributionPoolShare;        // Share (%) for the distribution pool entries.
     }
 
     /// @dev Function to validate whether a lottery item is valid (has a name and valid rounds configuration).
@@ -33,6 +43,13 @@ library LotteryModel {
     {
         if (bytes(lottery.Name).length == 0) revert InvalidName();
         if (lottery.Rounds == 0 || lottery.RoundBlocks == 0) revert InvalidRoundsConfiguration();
+        
+        UD60x18 totalDistributed =  ud(0e18);
+        for (uint i ; i < MAX_DISTRIBUTIONPOOL ; i++) {
+            totalDistributed = totalDistributed + lottery.DistributionPoolShare[i];
+            if (totalDistributed > ud(1e18)) revert InvalidDistributionPool();
+        }
+
     }
 
     // @dev Function to validate whether a ticket item is compatible for a specific lottery item.

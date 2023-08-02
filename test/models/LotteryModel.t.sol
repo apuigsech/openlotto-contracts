@@ -80,6 +80,15 @@ contract testLotteryModel is Test {
         wrap.isValid(lottery);
 
         lottery = ModelsHelpers.newFilledLottery();
+        lottery.DistributionPoolShare[0] = ud(0.25e18);
+        lottery.DistributionPoolShare[1] = ud(0.25e18);
+        lottery.DistributionPoolShare[2] = ud(0.25e18);
+        lottery.DistributionPoolShare[3] = ud(0.25e18);
+        lottery.DistributionPoolShare[4] = ud(0.25e18);
+        vm.expectRevert(LotteryModel.InvalidDistributionPool.selector);
+        wrap.isValid(lottery);
+
+        lottery = ModelsHelpers.newFilledLottery();
         wrap.isValid(lottery);
     }  
 }

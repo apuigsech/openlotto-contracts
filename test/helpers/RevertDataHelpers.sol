@@ -2,7 +2,8 @@
 pragma solidity ^0.8.19;
 
 import "forge-std/Test.sol";
-import "openzeppelin/access/IAccessControl.sol";
+
+import "@openzeppelin/access/IAccessControl.sol";
 
 import "@models/LotteryModel.sol";
 import "@models/TicketModel.sol";

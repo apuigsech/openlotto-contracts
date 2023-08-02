@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-import "openzeppelin/access/AccessControl.sol";
+import "@openzeppelin/access/AccessControl.sol";
 
 import "@models/LotteryModel.sol";
 import "@models/TicketModel.sol";
@@ -10,6 +10,7 @@ import "@database/TicketDatabase.sol";
 
 contract OpenLotto is AccessControl {
     using LotteryModel for LotteryModel.LotteryItem;
+    using TicketModel for TicketModel.TicketItem;
 
     bytes32 public constant LOTTERY_MANAGER_ROLE = keccak256("LOTTERY_MANAGER_ROLE");
 
@@ -42,8 +43,10 @@ contract OpenLotto is AccessControl {
         public
         returns(uint32 id)
     {
+        ticket.isValid();
         LotteryModel.LotteryItem memory lottery = lottery_db.Read(ticket.LotteryID);
         lottery.isValidTicket(ticket);
+
         return ticket_db.Create(ticket);
     }
 
