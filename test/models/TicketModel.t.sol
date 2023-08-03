@@ -117,6 +117,9 @@ contract testTicketModelStorage is Test {
 
         TicketModel.TicketItem memory ticket;
 
+        vm.expectRevert(TicketModelStorage.InvalidID.selector);
+        wrap.get(1);
+
         ticket = ModelsHelpers.newFilledTicket(); 
         ticket.LotteryID = 1;
         wrap.set(1, ticket);

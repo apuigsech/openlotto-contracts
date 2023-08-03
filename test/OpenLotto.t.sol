@@ -81,6 +81,15 @@ contract testOpenLotto is Test {
         openlotto.CreateLottery(lottery);
 
         lottery = ModelsHelpers.newFilledLottery();
+        lottery.PrizePoolShare[0] = ud(0.25e18);
+        lottery.PrizePoolShare[1] = ud(0.25e18);
+        lottery.PrizePoolShare[2] = ud(0.25e18);
+        lottery.PrizePoolShare[3] = ud(0.25e18);
+        lottery.PrizePoolShare[4] = ud(0.25e18);
+        vm.expectRevert(LotteryModel.InvalidPrizePool.selector);
+        openlotto.CreateLottery(lottery);
+
+        lottery = ModelsHelpers.newFilledLottery();
         assertEq(openlotto.CreateLottery(lottery), 1);
         assertEq(openlotto.CreateLottery(lottery), 2);
         assertEq(openlotto.CreateLottery(lottery), 3);

@@ -14,11 +14,16 @@ library LotteryModel {
     error InvalidRoundsConfiguration();
     /// @dev Error thrown when the distribution pool exceeds the 100%.
     error InvalidDistributionPool();
+    /// @dev Error thrown when the prize pool exceeds the 100%.
+    error InvalidPrizePool();
     /// @dev Error thrown when the ticket rounds are not compatible with the lottery.
     error InvalidTicketRounds(); 
 
     // Number of entries on the distribution pool - distribuion of the income from bought tickets.
     uint8 private constant _MAX_DISTRIBUTIONPOOL = 5;
+
+    // Number of entries on the prize pool - distribuion of the jackpot to the winners.
+    uint8 private constant _MAX_PRIZEPOOL = 20;
 
     /// @dev Data structure representing a specific lottery.
     struct LotteryItem {
@@ -33,15 +38,24 @@ library LotteryModel {
 
         uint256 JackpotMin;                                         // Minimum size of the lottery jackpot.
 
-        address[_MAX_DISTRIBUTIONPOOL] DistributionPoolTo;           // Destination for the distribution pool entries. (address(0) sends money to the reserve, remaining value goes to jackpot).
-        UD60x18[_MAX_DISTRIBUTIONPOOL] DistributionPoolShare;        // Share (%) for the distribution pool entries.
+        address[_MAX_DISTRIBUTIONPOOL] DistributionPoolTo;          // Destination for the distribution pool entries. (address(0) sends money to the reserve, remaining value goes to jackpot).
+        UD60x18[_MAX_DISTRIBUTIONPOOL] DistributionPoolShare;       // Share (%) for the distribution pool entries.
+
+        UD60x18[_MAX_PRIZEPOOL] PrizePoolShare;                     // Share (%) for the prize pool entries.
     }
 
     function MAX_DISTRIBUTIONPOOL()
-        internal  pure
+        internal pure
         returns(uint8)
     {
         return _MAX_DISTRIBUTIONPOOL;
+    }
+
+    function MAX_PRIZEPOOL()
+        internal pure
+        returns(uint8)
+    {
+        return _MAX_PRIZEPOOL;
     }
 
     /// @dev Function to validate whether a lottery item is valid (has a name and valid rounds configuration).
@@ -51,12 +65,19 @@ library LotteryModel {
         if (bytes(lottery.Name).length == 0) revert InvalidName();
         if (lottery.Rounds == 0 || lottery.RoundBlocks == 0) revert InvalidRoundsConfiguration();
         
-        UD60x18 totalDistributed =  ud(0e18);
+        UD60x18 totalDistributed; 
+        
+        totalDistributed = ud(0e18);
         for (uint i ; i < _MAX_DISTRIBUTIONPOOL ; i++) {
             totalDistributed = totalDistributed + lottery.DistributionPoolShare[i];
-            if (totalDistributed > ud(1e18)) revert InvalidDistributionPool();
         }
+        if (totalDistributed > ud(1e18)) revert InvalidDistributionPool();
 
+        totalDistributed =  ud(0e18);
+        for (uint i ; i < _MAX_PRIZEPOOL ; i++) {
+            totalDistributed = totalDistributed + lottery.PrizePoolShare[i];
+        }
+        if (totalDistributed != ud(1e18)) revert InvalidPrizePool();
     }
 
     // @dev Function to validate whether a ticket item is compatible for a specific lottery item.

@@ -89,6 +89,15 @@ contract testLotteryModel is Test {
         wrap.isValid(lottery);
 
         lottery = ModelsHelpers.newFilledLottery();
+        lottery.PrizePoolShare[0] = ud(0.25e18);
+        lottery.PrizePoolShare[1] = ud(0.25e18);
+        lottery.PrizePoolShare[2] = ud(0.25e18);
+        lottery.PrizePoolShare[3] = ud(0.25e18);
+        lottery.PrizePoolShare[4] = ud(0.25e18);
+        vm.expectRevert(LotteryModel.InvalidPrizePool.selector);
+        wrap.isValid(lottery);
+
+        lottery = ModelsHelpers.newFilledLottery();
         wrap.isValid(lottery);
     }  
 }
@@ -130,6 +139,9 @@ contract testLotteryModelStorage is Test {
 
         LotteryModel.LotteryItem memory lottery;
 
+        vm.expectRevert(LotteryModelStorage.InvalidID.selector);
+        wrap.get(1);
+
         lottery = ModelsHelpers.newFilledLottery(); 
         lottery.Name = "one";
         wrap.set(1, lottery);
@@ -145,6 +157,6 @@ contract testLotteryModelStorage is Test {
         lottery = wrap.get(2);
         assertEq(lottery.Name, "two");
         lottery = wrap.get(3);
-        assertEq(lottery.Name, "three");      
+        assertEq(lottery.Name, "three");     
     }
 }
