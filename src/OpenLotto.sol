@@ -22,6 +22,7 @@ contract OpenLotto is AccessControl {
     TicketDatabase ticket_db;
 
     mapping(uint32 => uint256) public Reserve;
+    mapping(uint32 => mapping(uint32 => uint256)) public RoundJackpot;
 
     constructor(LotteryDatabase _lottery_db, TicketDatabase _ticket_db) {
         lottery_db = _lottery_db;
@@ -54,9 +55,9 @@ contract OpenLotto is AccessControl {
         LotteryModel.LotteryItem memory lottery = lottery_db.Read(ticket.LotteryID);
         lottery.isValidTicket(ticket);
 
-        unchecked { 
-            if (msg.value < lottery.BetPrice * (1 + ticket.LotteryRoundFini - ticket.LotteryRoundInit)) revert InsuficientFunds();
-        }
+        uint32 roundsCount = 1 + ticket.LotteryRoundFini - ticket.LotteryRoundInit;
+        
+        if (msg.value < lottery.BetPrice * roundsCount) revert InsuficientFunds();
 
         UD60x18 totalValue = ud(msg.value);
         UD60x18 remainingValue = totalValue;
@@ -69,7 +70,12 @@ contract OpenLotto is AccessControl {
             } else {
                 Reserve[ticket.LotteryID] += distributeValue.unwrap();
             }
-        }        
+        }
+
+        uint valuePerRound = remainingValue.unwrap() / roundsCount;
+        for (uint32 round = ticket.LotteryRoundInit ; round <= ticket.LotteryRoundFini ; round++ ) {
+            RoundJackpot[ticket.LotteryID][round] += valuePerRound;
+        }
 
         return ticket_db.Create(ticket);
     }

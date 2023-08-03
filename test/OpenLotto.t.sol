@@ -178,21 +178,15 @@ contract testOpenLotto is Test {
 
         vm.startPrank(lottery_manager_role);
         lottery = ModelsHelpers.newFilledLottery();
-
         lottery.BetPrice = 1 ether;
-        
         lottery.DistributionPoolTo[0] = distribution_pool_0;
         lottery.DistributionPoolShare[0] = ud(0.10e18);
-
         lottery.DistributionPoolTo[1] = distribution_pool_1;
         lottery.DistributionPoolShare[1] = ud(0.075e18);
-        
         lottery.DistributionPoolTo[2] = distribution_pool_2;
         lottery.DistributionPoolShare[2] = ud(0.05e18);
-        
         lottery.DistributionPoolTo[3] = address(0); // Reserve.
         lottery.DistributionPoolShare[3] = ud(0.025e18);
-    
         uint32 lottery_id = openlotto.CreateLottery(lottery);
         vm.stopPrank(); 
 
@@ -214,6 +208,67 @@ contract testOpenLotto is Test {
         assertEq(distribution_pool_2.balance, 0.1 ether);
         assertEq(openlotto.Reserve(lottery_id), 0.05 ether);
     }    
+
+    function testRoundJackpots()
+        public
+    {
+        LotteryModel.LotteryItem memory lottery;
+        TicketModel.TicketItem memory ticket;
+
+        vm.startPrank(lottery_manager_role);
+        lottery = ModelsHelpers.newFilledLottery();
+        lottery.Name = "one";
+        lottery.Rounds = 10;
+        lottery.BetPrice = 1 ether;
+        lottery.DistributionPoolTo[0] = distribution_pool_0;
+        lottery.DistributionPoolShare[0] = ud(0.10e18);
+        lottery.DistributionPoolTo[1] = distribution_pool_1;
+        lottery.DistributionPoolShare[1] = ud(0.075e18);
+        lottery.DistributionPoolTo[2] = distribution_pool_2;
+        lottery.DistributionPoolShare[2] = ud(0.05e18);
+        lottery.DistributionPoolTo[3] = address(0); // Reserve.
+        lottery.DistributionPoolShare[3] = ud(0.025e18);
+        uint32 lottery_id = openlotto.CreateLottery(lottery);
+        vm.stopPrank();
+
+        ticket = ModelsHelpers.newFilledTicket();
+        ticket.LotteryID = lottery_id;
+        ticket.LotteryRoundInit = 1;
+        ticket.LotteryRoundFini = 1;
+        openlotto.BuyTicket{value: 1 ether}(ticket);
+
+        assertEq(openlotto.RoundJackpot(lottery_id, 1), 0.75 ether);
+
+        ticket = ModelsHelpers.newFilledTicket();
+        ticket.LotteryID = lottery_id;
+        ticket.LotteryRoundInit = 1;
+        ticket.LotteryRoundFini = 5;
+        openlotto.BuyTicket{value: 5 ether}(ticket);
+
+        assertEq(openlotto.RoundJackpot(lottery_id, 1), 1.5 ether);
+        assertEq(openlotto.RoundJackpot(lottery_id, 2), 0.75 ether);
+        assertEq(openlotto.RoundJackpot(lottery_id, 3), 0.75 ether);
+        assertEq(openlotto.RoundJackpot(lottery_id, 4), 0.75 ether);
+        assertEq(openlotto.RoundJackpot(lottery_id, 5), 0.75 ether);
+
+        ticket = ModelsHelpers.newFilledTicket();
+        ticket.LotteryID = lottery_id;
+        ticket.LotteryRoundInit = 1;
+        ticket.LotteryRoundFini = 10;
+        openlotto.BuyTicket{value: 10 ether}(ticket);
+
+        assertEq(openlotto.RoundJackpot(lottery_id, 1), 2.25 ether);
+        assertEq(openlotto.RoundJackpot(lottery_id, 2), 1.5 ether);
+        assertEq(openlotto.RoundJackpot(lottery_id, 3), 1.5 ether);
+        assertEq(openlotto.RoundJackpot(lottery_id, 4), 1.5 ether);
+        assertEq(openlotto.RoundJackpot(lottery_id, 5), 1.5 ether);
+        assertEq(openlotto.RoundJackpot(lottery_id, 6), 0.75 ether);
+        assertEq(openlotto.RoundJackpot(lottery_id, 7), 0.75 ether);
+        assertEq(openlotto.RoundJackpot(lottery_id, 8), 0.75 ether);
+        assertEq(openlotto.RoundJackpot(lottery_id, 9), 0.75 ether);
+        assertEq(openlotto.RoundJackpot(lottery_id, 10), 0.75 ether);
+    }
+
 
     function testReadTicket()
         public
