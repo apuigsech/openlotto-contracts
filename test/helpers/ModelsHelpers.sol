@@ -12,6 +12,8 @@ contract DummyLotteryOperator is LotteryOperatorInterface {
     function CreateLottery(uint32 id, LotteryModel.LotteryItem memory lottery) override public {}
     function CreateTicket(uint32 id, TicketModel.TicketItem memory ticket) override public {}
     function isValidTicket(LotteryModel.LotteryItem memory lottery, TicketModel.TicketItem memory ticket) override public pure {}
+    function TicketPrizes(uint32 lottery_id, LotteryModel.LotteryItem memory lottery, uint32 ticket_id, TicketModel.TicketItem memory ticket, uint32 round) override public pure {}
+    
 }
 
 library ModelsHelpers {
@@ -35,5 +37,6 @@ library ModelsHelpers {
         ticket.LotteryID = 0;
         ticket.LotteryRoundInit = 1;
         ticket.LotteryRoundFini = 1;
+        ticket.NumBets = 1;
     }
 }

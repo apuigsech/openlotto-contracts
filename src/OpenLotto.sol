@@ -63,7 +63,7 @@ contract OpenLotto is AccessControl {
 
         uint32 roundsCount = 1 + ticket.LotteryRoundFini - ticket.LotteryRoundInit;
         
-        if (msg.value < lottery.BetPrice * roundsCount) revert InsuficientFunds();
+        if (msg.value < lottery.BetPrice * roundsCount * ticket.NumBets) revert InsuficientFunds();
 
         UD60x18 totalValue = ud(msg.value);
         UD60x18 remainingValue = totalValue;
@@ -93,4 +93,13 @@ contract OpenLotto is AccessControl {
     {
         return ticket_db.Read(id);
     }
+
+    function TicketPrizes(uint32 id, uint32 round)
+        public
+        returns(uint32 prizes) {
+            TicketModel.TicketItem memory ticket = ticket_db.Read(id);
+            LotteryModel.LotteryItem memory lottery = lottery_db.Read(ticket.LotteryID);
+
+            lottery.Operator.TicketPrizes(ticket.LotteryID, lottery, id, ticket, round);
+        }
 }

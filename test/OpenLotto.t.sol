@@ -168,9 +168,23 @@ contract testOpenLotto is Test {
 
         ticket = ModelsHelpers.newFilledTicket();
         ticket.LotteryID = lottery_id;
-        ticket.LotteryRoundFini = 1;
+        ticket.LotteryRoundFini = 2;
         vm.expectRevert(OpenLotto.InsuficientFunds.selector);
-        openlotto.BuyTicket{value: 0.5 ether}(ticket);
+        openlotto.BuyTicket{value: 1 ether}(ticket);
+
+        ticket = ModelsHelpers.newFilledTicket();
+        ticket.LotteryID = lottery_id;
+        ticket.LotteryRoundFini = 1;
+        ticket.NumBets = 2;
+        vm.expectRevert(OpenLotto.InsuficientFunds.selector);
+        openlotto.BuyTicket{value: 1 ether}(ticket);
+
+       ticket = ModelsHelpers.newFilledTicket();
+        ticket.LotteryID = lottery_id;
+        ticket.LotteryRoundFini = 2;
+        ticket.NumBets = 2;
+        vm.expectRevert(OpenLotto.InsuficientFunds.selector);
+        openlotto.BuyTicket{value: 3 ether}(ticket);
 
         ticket = ModelsHelpers.newFilledTicket();
         ticket.LotteryID = lottery_id;
@@ -180,6 +194,18 @@ contract testOpenLotto is Test {
         assertEq(openlotto.BuyTicket{value: 5 ether}(ticket), 2);
         ticket.LotteryRoundFini = 10;
         assertEq(openlotto.BuyTicket{value: 10 ether}(ticket), 3);
+        ticket = ModelsHelpers.newFilledTicket();
+        ticket.LotteryID = lottery_id;
+        ticket.LotteryRoundFini = 1;
+        ticket.NumBets = 1;
+        assertEq(openlotto.BuyTicket{value: 5 ether}(ticket), 4);
+        ticket.LotteryRoundFini = 1;
+        ticket.NumBets = 5;
+        assertEq(openlotto.BuyTicket{value: 5 ether}(ticket), 5);
+        ticket.LotteryRoundFini = 1;
+        ticket.NumBets = 10;
+        assertEq(openlotto.BuyTicket{value: 10 ether}(ticket), 6);
+
 
         vm.roll(1099);
         ticket = ModelsHelpers.newFilledTicket();
@@ -203,7 +229,6 @@ contract testOpenLotto is Test {
         ticket.LotteryRoundFini = 1;
         vm.expectRevert(LotteryModel.LotteryExpired.selector);
         openlotto.BuyTicket{value: 1 ether}(ticket);
-    
     }
 
     function testDistributionPool()

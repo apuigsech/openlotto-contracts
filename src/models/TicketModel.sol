@@ -12,6 +12,7 @@ library TicketModel {
         uint32 LotteryID;                   // Reference identifier of the lottery associated with the ticket.
         uint32 LotteryRoundInit;            // Starting round of the lottery for which the ticket is playing.
         uint32 LotteryRoundFini;            // Ending round of the lottery for which the ticket is playing.
+        uint8 NumBets;                      // Number of bets the ticket is processing (typicaly 1). The ticket cost and prize is affected by this value.
     }
 
     /// @dev Function to validate whether a ticket item is valid (has valid round configuration).
@@ -29,6 +30,7 @@ library TicketModel {
         ticket.LotteryID = 0;
         ticket.LotteryRoundInit = 0;
         ticket.LotteryRoundFini = 0;
+        ticket.NumBets = 0;
     }
 }
 
