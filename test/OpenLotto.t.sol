@@ -135,7 +135,9 @@ contract testOpenLotto is Test {
         vm.startPrank(lottery_manager_role);
         lottery = ModelsHelpers.newFilledLottery();
         lottery.Name = "one";
+        lottery.InitBlock = 1000;
         lottery.Rounds = 10;
+        lottery.RoundBlocks = 100;
         uint32 lottery_id = openlotto.CreateLottery(lottery);
         vm.stopPrank();
 
@@ -178,6 +180,30 @@ contract testOpenLotto is Test {
         assertEq(openlotto.BuyTicket{value: 5 ether}(ticket), 2);
         ticket.LotteryRoundFini = 10;
         assertEq(openlotto.BuyTicket{value: 10 ether}(ticket), 3);
+
+        vm.roll(1099);
+        ticket = ModelsHelpers.newFilledTicket();
+        ticket.LotteryID = lottery_id;
+        ticket.LotteryRoundInit = 1;
+        ticket.LotteryRoundFini = 1;
+        openlotto.BuyTicket{value: 1 ether}(ticket);
+
+        vm.roll(1100);
+        ticket = ModelsHelpers.newFilledTicket();
+        ticket.LotteryID = lottery_id;
+        ticket.LotteryRoundInit = 1;
+        ticket.LotteryRoundFini = 1;
+        vm.expectRevert(OpenLotto.InvalidRounds.selector);
+        openlotto.BuyTicket{value: 1 ether}(ticket);
+
+        vm.roll(2100);
+        ticket = ModelsHelpers.newFilledTicket();
+        ticket.LotteryID = lottery_id;
+        ticket.LotteryRoundInit = 1;
+        ticket.LotteryRoundFini = 1;
+        vm.expectRevert(LotteryModel.LotteryExpired.selector);
+        openlotto.BuyTicket{value: 1 ether}(ticket);
+    
     }
 
     function testDistributionPool()

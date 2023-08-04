@@ -16,6 +16,8 @@ contract OpenLotto is AccessControl {
 
     error InsuficientFunds();
 
+    error InvalidRounds();
+
     bytes32 public constant LOTTERY_MANAGER_ROLE = keccak256("LOTTERY_MANAGER_ROLE");
 
     LotteryDatabase lottery_db;
@@ -56,6 +58,8 @@ contract OpenLotto is AccessControl {
         LotteryModel.LotteryItem memory lottery = lottery_db.Read(ticket.LotteryID);
         lottery.isValidTicket(ticket);
         lottery.Operator.isValidTicket(lottery, ticket);
+
+        if (ticket.LotteryRoundInit < lottery.nextRound()) revert InvalidRounds();
 
         uint32 roundsCount = 1 + ticket.LotteryRoundFini - ticket.LotteryRoundInit;
         
