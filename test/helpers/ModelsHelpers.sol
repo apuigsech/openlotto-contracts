@@ -9,11 +9,24 @@ import "@models/LotteryModel.sol";
 import "@models/TicketModel.sol";
 
 contract DummyLotteryOperator is LotteryOperatorInterface {
-    function CreateLottery(uint32 id, LotteryModel.LotteryItem memory lottery) override public {}
-    function CreateTicket(uint32 id, TicketModel.TicketItem memory ticket) override public {}
-    function isValidTicket(LotteryModel.LotteryItem memory lottery, TicketModel.TicketItem memory ticket) override public pure {}
-    function TicketPrizes(uint32 lottery_id, LotteryModel.LotteryItem memory lottery, uint32 ticket_id, TicketModel.TicketItem memory ticket, uint32 round) override public pure {}
-    
+    bool public AuthorizationEnabled = false;
+
+    function _createLottery(uint32, LotteryModel.LotteryItem memory) override internal {}
+    function _createTicket(uint32, TicketModel.TicketItem memory) override internal {}
+    function _isValidTicket(LotteryModel.LotteryItem memory, TicketModel.TicketItem memory) override internal pure {}
+    function _ticketCombinations(TicketModel.TicketItem memory) override internal pure returns(uint16) { return 1; }
+    function _ticketPrizes(uint32, LotteryModel.LotteryItem memory, uint32, TicketModel.TicketItem memory, uint32) override internal pure returns(uint32) { return 0; }  
+    function _resolveRound(uint32, uint32, uint256) override internal {}
+
+    function testEnableAuthorization() public {
+        AuthorizationEnabled = true;
+    }
+
+    function _checkRole(bytes32 role, address account) override internal view {
+        if (AuthorizationEnabled) {
+            super._checkRole(role, account);
+        }
+    }
 }
 
 library ModelsHelpers {

@@ -16,14 +16,14 @@ contract wrapLotteryModel {
     }
 
     function nextRoundOnBlock(LotteryModel.LotteryItem memory lottery, uint256 blockNumber)
-        public view 
+        public pure 
         returns (uint32 round) 
     {
         round = lottery.nextRoundOnBlock(blockNumber);
     }
 
     function resolutionBlock(LotteryModel.LotteryItem memory lottery, uint32 round)
-        public view 
+        public pure 
         returns (uint256 blockNumber) 
     {
         blockNumber = lottery.resolutionBlock(round);

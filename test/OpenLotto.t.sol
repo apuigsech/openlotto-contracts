@@ -206,7 +206,6 @@ contract testOpenLotto is Test {
         ticket.NumBets = 10;
         assertEq(openlotto.BuyTicket{value: 10 ether}(ticket), 6);
 
-
         vm.roll(1099);
         ticket = ModelsHelpers.newFilledTicket();
         ticket.LotteryID = lottery_id;

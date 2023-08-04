@@ -57,13 +57,18 @@ contract OpenLotto is AccessControl {
         ticket.isValid();
         LotteryModel.LotteryItem memory lottery = lottery_db.Read(ticket.LotteryID);
         lottery.isValidTicket(ticket);
-        lottery.Operator.isValidTicket(lottery, ticket);
+        lottery.Operator.IsValidTicket(lottery, ticket);
 
         if (ticket.LotteryRoundInit < lottery.nextRound()) revert InvalidRounds();
 
         uint32 roundsCount = 1 + ticket.LotteryRoundFini - ticket.LotteryRoundInit;
         
-        if (msg.value < lottery.BetPrice * roundsCount * ticket.NumBets) revert InsuficientFunds();
+        uint256 ticketCost = lottery.BetPrice;
+        ticketCost *= ticket.NumBets;
+        ticketCost *= lottery.Operator.TicketCombinations(ticket);
+        ticketCost *= roundsCount;
+
+        if (msg.value < ticketCost) revert InsuficientFunds();
 
         UD60x18 totalValue = ud(msg.value);
         UD60x18 remainingValue = totalValue;
@@ -88,18 +93,25 @@ contract OpenLotto is AccessControl {
     }
 
     function ReadTicket(uint32 id)
-        public
+        public view
         returns(TicketModel.TicketItem memory ticket)
     {
         return ticket_db.Read(id);
     }
 
+    function ResolveRound(uint32 id, uint32 round) public {
+        LotteryModel.LotteryItem memory lottery = lottery_db.Read(id);
+        lottery.Operator.ResolveRound(id, round, 0, msg.sender);
+    }
+
+
     function TicketPrizes(uint32 id, uint32 round)
         public
-        returns(uint32 prizes) {
-            TicketModel.TicketItem memory ticket = ticket_db.Read(id);
-            LotteryModel.LotteryItem memory lottery = lottery_db.Read(ticket.LotteryID);
+        returns(uint32)
+    {
+        TicketModel.TicketItem memory ticket = ticket_db.Read(id);
+        LotteryModel.LotteryItem memory lottery = lottery_db.Read(ticket.LotteryID);
 
-            lottery.Operator.TicketPrizes(ticket.LotteryID, lottery, id, ticket, round);
-        }
+        return lottery.Operator.TicketPrizes(ticket.LotteryID, lottery, id, ticket, round);
+    }
 }
