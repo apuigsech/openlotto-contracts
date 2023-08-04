@@ -26,6 +26,8 @@ library LotteryModel {
     error InvalidPrizePool();
     /// @dev rror thrown when the adddress of the lottery operator is not a contract.
     error InvalidOperator();
+    /// @dev Error throun when a lottery is expired (all rounds are done).
+    error LotteryExpired();
     /// @dev Error thrown when the ticket rounds are not compatible with the lottery.
     error InvalidTicketRounds(); 
 
@@ -95,11 +97,40 @@ library LotteryModel {
         if (!Address.isContract(address(lottery.Operator))) revert InvalidOperator();
     }
 
-    // @dev Function to validate whether a ticket item is compatible for a specific lottery item.
+    /// @dev Function to validate whether a ticket item is compatible for a specific lottery item.
     function isValidTicket(LotteryModel.LotteryItem memory lottery, TicketModel.TicketItem memory ticket) 
         internal pure
     {
         if (ticket.LotteryRoundFini > lottery.Rounds) revert InvalidTicketRounds();
+    }
+
+    /// @dev Function that returns the next round to be resolved for a specific lottery item on a specific block number;
+    function nextRoundOnBlock(LotteryModel.LotteryItem memory lottery, uint256 blockNumber) 
+        internal pure
+        returns(uint32 round)
+    {
+        if (blockNumber < lottery.InitBlock) {
+            blockNumber = lottery.InitBlock;
+        }
+        round = 1 + (uint32(blockNumber - lottery.InitBlock) / lottery.RoundBlocks);
+        if (round > lottery.Rounds) revert LotteryExpired();
+    }
+
+    /// @dev Function that returns the next round to be resolved for a specific lottery item.
+    function nextRound(LotteryModel.LotteryItem memory lottery)
+        internal view
+        returns(uint32 round)
+    {
+        round = nextRoundOnBlock(lottery, block.number);
+    }
+
+    /// @dev function that returns the resolution block for a specific lottery round.
+    function resolutionBlock(LotteryModel.LotteryItem memory lottery, uint32 round) 
+        internal view 
+        returns(uint256 blockNumber)
+    {
+        if (round > lottery.Rounds) revert LotteryExpired();
+        blockNumber = lottery.InitBlock + round * lottery.RoundBlocks;
     }
 
     /// @dev Function to create an empty LotteryItem.

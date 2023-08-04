@@ -14,6 +14,20 @@ contract wrapLotteryModel {
     {
         lottery.isValid();
     }
+
+    function nextRoundOnBlock(LotteryModel.LotteryItem memory lottery, uint256 blockNumber)
+        public view 
+        returns (uint32 round) 
+    {
+        round = lottery.nextRoundOnBlock(blockNumber);
+    }
+
+    function resolutionBlock(LotteryModel.LotteryItem memory lottery, uint32 round)
+        public view 
+        returns (uint256 blockNumber) 
+    {
+        blockNumber = lottery.resolutionBlock(round);
+    }
 }
 
 contract wrapLotteryModelStorage {
@@ -99,7 +113,55 @@ contract testLotteryModel is Test {
 
         lottery = ModelsHelpers.newFilledLottery();
         wrap.isValid(lottery);
-    }  
+    }
+
+    function testNextRoundOnBlock() 
+        public
+    {
+        wrapLotteryModel wrap = new wrapLotteryModel();
+
+        LotteryModel.LotteryItem memory lottery;
+
+        lottery = ModelsHelpers.newFilledLottery();
+        lottery.InitBlock = 1000;
+        lottery.Rounds = 10;
+        lottery.RoundBlocks = 100;
+        wrap.isValid(lottery);
+
+        assertEq(wrap.nextRoundOnBlock(lottery, 0), 1);
+        assertEq(wrap.nextRoundOnBlock(lottery, 1000), 1);
+        assertEq(wrap.nextRoundOnBlock(lottery, 1099), 1);
+        assertEq(wrap.nextRoundOnBlock(lottery, 1100), 2);
+        assertEq(wrap.nextRoundOnBlock(lottery, 1600), 7);
+        assertEq(wrap.nextRoundOnBlock(lottery, 1900), 10);
+
+        vm.expectRevert(LotteryModel.LotteryExpired.selector);
+        wrap.nextRoundOnBlock(lottery, 2000);
+        vm.expectRevert(LotteryModel.LotteryExpired.selector);
+        wrap.nextRoundOnBlock(lottery, 2100);
+    }
+
+    function testResolutionBlock() 
+        public
+    {
+        wrapLotteryModel wrap = new wrapLotteryModel();
+
+        LotteryModel.LotteryItem memory lottery;
+
+        lottery = ModelsHelpers.newFilledLottery();
+        lottery.InitBlock = 1000;
+        lottery.Rounds = 10;
+        lottery.RoundBlocks = 100;
+        wrap.isValid(lottery);
+
+        assertEq(wrap.resolutionBlock(lottery, 1), 1100);
+        assertEq(wrap.resolutionBlock(lottery, 2), 1200);
+        assertEq(wrap.resolutionBlock(lottery, 10), 2000);
+
+        vm.expectRevert(LotteryModel.LotteryExpired.selector);
+        wrap.resolutionBlock(lottery, 11);
+    }
+
 }
 
 contract testLotteryModelStorage is Test {
