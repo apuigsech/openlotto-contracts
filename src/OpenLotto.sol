@@ -37,7 +37,8 @@ contract OpenLotto is AccessControl {
         returns(uint32 id)
     {
         lottery.isValid();
-        return lottery_db.Create(lottery);
+        id = lottery_db.Create(lottery);
+        lottery.Operator.CreateLottery(id, lottery);
     }
 
     function ReadLottery(uint32 id)
@@ -54,6 +55,7 @@ contract OpenLotto is AccessControl {
         ticket.isValid();
         LotteryModel.LotteryItem memory lottery = lottery_db.Read(ticket.LotteryID);
         lottery.isValidTicket(ticket);
+        lottery.Operator.isValidTicket(lottery, ticket);
 
         uint32 roundsCount = 1 + ticket.LotteryRoundFini - ticket.LotteryRoundInit;
         
@@ -77,7 +79,8 @@ contract OpenLotto is AccessControl {
             RoundJackpot[ticket.LotteryID][round] += valuePerRound;
         }
 
-        return ticket_db.Create(ticket);
+        id = ticket_db.Create(ticket);
+        lottery.Operator.CreateTicket(id, ticket);
     }
 
     function ReadTicket(uint32 id)

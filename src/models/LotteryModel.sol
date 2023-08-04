@@ -1,9 +1,17 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
+import "@openzeppelin/utils/Address.sol";
+
 import {UD60x18, ud} from "@prb/math/UD60x18.sol";
 
 import "@models/TicketModel.sol";
+
+abstract contract LotteryOperatorInterface {
+    function CreateLottery(uint32 id, LotteryModel.LotteryItem memory lottery) virtual public;
+    function CreateTicket(uint32 id, TicketModel.TicketItem memory ticket) virtual public;
+    function isValidTicket(LotteryModel.LotteryItem memory lottery, TicketModel.TicketItem memory ticket) virtual public pure;
+}
 
 /// @title Library containing the data model and functions related to the LotteryItem struct.
 library LotteryModel {
@@ -16,6 +24,8 @@ library LotteryModel {
     error InvalidDistributionPool();
     /// @dev Error thrown when the prize pool exceeds the 100%.
     error InvalidPrizePool();
+    /// @dev rror thrown when the adddress of the lottery operator is not a contract.
+    error InvalidOperator();
     /// @dev Error thrown when the ticket rounds are not compatible with the lottery.
     error InvalidTicketRounds(); 
 
@@ -42,6 +52,9 @@ library LotteryModel {
         UD60x18[_MAX_DISTRIBUTIONPOOL] DistributionPoolShare;       // Share (%) for the distribution pool entries.
 
         UD60x18[_MAX_PRIZEPOOL] PrizePoolShare;                     // Share (%) for the prize pool entries.
+
+        LotteryOperatorInterface Operator;                          // Contract that 'operates' this lottery.
+        bytes16 Attributes;                                         // Attributes for the operator.
     }
 
     function MAX_DISTRIBUTIONPOOL()
@@ -60,7 +73,7 @@ library LotteryModel {
 
     /// @dev Function to validate whether a lottery item is valid (has a name and valid rounds configuration).
     function isValid(LotteryModel.LotteryItem memory lottery) 
-        internal pure
+        internal view
     {
         if (bytes(lottery.Name).length == 0) revert InvalidName();
         if (lottery.Rounds == 0 || lottery.RoundBlocks == 0) revert InvalidRoundsConfiguration();
@@ -78,6 +91,8 @@ library LotteryModel {
             totalDistributed = totalDistributed + lottery.PrizePoolShare[i];
         }
         if (totalDistributed != ud(1e18)) revert InvalidPrizePool();
+
+        if (!Address.isContract(address(lottery.Operator))) revert InvalidOperator();
     }
 
     // @dev Function to validate whether a ticket item is compatible for a specific lottery item.

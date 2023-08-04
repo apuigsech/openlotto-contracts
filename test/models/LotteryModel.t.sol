@@ -10,7 +10,7 @@ contract wrapLotteryModel {
     using LotteryModel for LotteryModel.LotteryItem;
 
     function isValid(LotteryModel.LotteryItem memory lottery)
-        public pure
+        public view
     {
         lottery.isValid();
     }
