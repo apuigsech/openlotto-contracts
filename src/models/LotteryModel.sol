@@ -9,10 +9,7 @@ import {UD60x18, ud} from "@prb/math/UD60x18.sol";
 import "@models/TicketModel.sol";
 
 abstract contract LotteryOperatorInterface is AccessControl {
-    bytes32 public constant OPENLOTTO_ROLE = keccak256("OPENLOTTO_ROLE");
-
-    uint32 private UnresolvedBets;
-    mapping (uint32 => mapping (uint32 => uint32)) private UnresolvedBetsPerLotteryRound;
+    bytes32 public constant OPERATOR_CONTROLER_ROLE = keccak256("OPERATOR_CONTROLER_ROLE");
 
     constructor() {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
@@ -20,20 +17,15 @@ abstract contract LotteryOperatorInterface is AccessControl {
 
     function CreateLottery(uint32 id, LotteryModel.LotteryItem memory lottery) 
         public
-        onlyRole(OPENLOTTO_ROLE)
+        onlyRole(OPERATOR_CONTROLER_ROLE)
     {
         _createLottery(id, lottery);
     }
 
     function CreateTicket(uint32 id, TicketModel.TicketItem memory ticket)  
-        public
-        onlyRole(OPENLOTTO_ROLE)
+        virtual public
+        onlyRole(OPERATOR_CONTROLER_ROLE)
     {
-        for (uint32 round = ticket.LotteryRoundInit ; round <= ticket.LotteryRoundFini ; round++) { 
-            UnresolvedBetsPerLotteryRound[ticket.LotteryID][round] += ticket.NumBets;
-            UnresolvedBets += ticket.NumBets;
-        }
-
         _createTicket(id, ticket);      
     }
 
@@ -52,24 +44,17 @@ abstract contract LotteryOperatorInterface is AccessControl {
 
     function TicketPrizes(uint32 lottery_id, LotteryModel.LotteryItem memory lottery, uint32 ticket_id, TicketModel.TicketItem memory ticket, uint32 round) 
         public
-        onlyRole(OPENLOTTO_ROLE)
+        onlyRole(OPERATOR_CONTROLER_ROLE)
         returns(uint32)
     {
         return _ticketPrizes(lottery_id, lottery, ticket_id, ticket, round);
     }
 
-    function ResolveRound(uint32 lottery_id, uint32 round, uint256 seed, address caller)
-        public
-        onlyRole(OPENLOTTO_ROLE)
+    function ResolveRound(uint32 lottery_id, LotteryModel.LotteryItem memory lottery, uint32 round, uint256 seed)
+        virtual public
+        onlyRole(OPERATOR_CONTROLER_ROLE)
     {
-        uint256 amount = UnresolvedBetsPerLotteryRound[lottery_id][round] * (address(this).balance / UnresolvedBets);
-
-        UnresolvedBets -= UnresolvedBetsPerLotteryRound[lottery_id][round];
-        UnresolvedBetsPerLotteryRound[lottery_id][round] = 0;
-
-        _resolveRound(lottery_id, round, seed);
-
-        payable(caller).transfer(amount);  
+        _resolveRound(lottery_id, lottery, round, seed);
     }
 
     function _createLottery(uint32 id, LotteryModel.LotteryItem memory lottery) virtual internal;
@@ -77,7 +62,7 @@ abstract contract LotteryOperatorInterface is AccessControl {
     function _isValidTicket(LotteryModel.LotteryItem memory lottery, TicketModel.TicketItem memory ticket) virtual internal pure;
     function _ticketCombinations(TicketModel.TicketItem memory ticket) virtual internal pure returns(uint16);
     function _ticketPrizes(uint32 lottery_id, LotteryModel.LotteryItem memory lottery, uint32 ticket_id, TicketModel.TicketItem memory ticket, uint32 round) virtual internal returns(uint32);
-    function _resolveRound(uint32 lottery_id, uint32 round, uint256 seed) virtual internal;
+    function _resolveRound(uint32 lottery_id, LotteryModel.LotteryItem memory lottery, uint32 round, uint256 seed) virtual internal;
 }
 
 /// @title Library containing the data model and functions related to the LotteryItem struct.
