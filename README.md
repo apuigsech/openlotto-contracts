@@ -50,44 +50,29 @@ This flexibility for the creation of lotteries enriches the gaming experience fo
 
 #### Lottery
 
-The Lottery data model represents an individual lottery instance within the OpenLotto system. It acts as the foundation for creating and managing different types of lotteries on the platform.
+The Lottery data model serves as the backbone of individual lottery instances within the platfirm, providing a foundation for creating and managing diverse types of lotteries.
 
-It includes attributes such as:
-- Name
-- Start and end times for rounds
-- Jackpot size
-- Prize distribution
-- Income distribution (fees, reserve, jackpot, etc)
-- Custom attributes for the lottery type
+Attributes of the Lottery data model include:
+
+- `Name`: Human-readable identifier for the lottery.
+- `InitBlock`: Block number at which the lottery rounds are initialized or started.
+- `Rounds`: Number of rounds or iterations for the lottery (how many times the lottery will be played).
+- `RoundBlocks`: Number of blocks between each round.
+- `BetPrice`: Cost of a single bet for the lottery.
+- `JackpotMin`: Minimum size of the lottery jackpot.
+- `DistributionPoolTo`: Destination for the distribution pool entries. (address(0) sends money to the reserve, remaining value goes to the jackpot).
+- `DistributionPoolShare`: Share (%) for the distribution pool entries.
+- `PrizePoolShare`: Share (%) for the prize pool entries.
+- `Operator`: Contract that 'operates' this lottery.
+- `Attributes`: Attributes for the operator.
 
 #### Ticket
 
-The Ticket data model represents a single lottery ticket purchased by a participant. It allows tracking and validating user participation in lotteries, and can be used to validate prizes.
+The Ticket data model represents an individual lottery ticket purchased by a participant, functioning as a vital element for tracking and validating user participation in lotteries. Tickets play a crucial role in verifying and awarding prizes to deserving winners.
 
-It contains attributes such as:
-- Associated lottery and its rounds
-- Custom attributes for the lottery type
+Attributes of the Ticket data model include:
 
-### SmartContracts
-
-#### Private API
-
-- CreateLottery
-
-#### Public API
-
-- NFT Interface
-- BuyTicket
-
-
-## Contributing
-
-### Bug Reports and Feature Requests
-
-### Development Setup
-
-### Code Style
-
-### Submitting Pull Requests
-
-## License
+- `LotteryID`: Reference identifier of the lottery associated with the ticket.
+- `LotteryRoundInit`: Starting round of the lottery for which the ticket is playing.
+- `LotteryRoundFini`: Ending round of the lottery for which the ticket is playing.
+- `NumBets`: Number of bets the ticket is processing (typically 1). The ticket cost and prize are affected by this value.
