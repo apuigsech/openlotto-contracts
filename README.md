@@ -8,11 +8,15 @@
 
 ### What is OpenLotto?
 
-OpenLotto is an open-source, blockchain-based lottery system designed to provide transparency, security, and fairness to participants. By leveraging the power of blockchain technology, OpenLotto aims to create a decentralized platform where players can engage in lotteries without relying on traditional centralized systems.
+OpenLotto is a cutting-edge open-source lottery platform built on the blockchain, offering a robust and versatile framework to create a wide range of diverse lotteries with a primary focus on transparency, security, and fairness. By harnessing the capabilities of blockchain technology, OpenLotto aims to redefine the conventional lottery industry, offering a decentralized ecosystem for participants to engage in thrilling games.
 
 ### How does it work?
 
-OpenLotto utilizes smartcontracts and blockchain technology to manage the entire lottery process; Players can participate by creating their tickets, and claiming their lottery prizes for winning tickets. Tickets are NFTs compatible so can be transferred. The results are determined based on secure and verifiable random number generation algorithms.
+OpenLotto leverages the blockchain technology to establish a tamper-proof and auditable lottery process. Its core functionalities encompass every aspect of the lottery journey; from creating diverse lotteries with unique logics to facilitating ticket sales and transparet prize distribution, without the requirement for intermediaries and central authorities.
+
+OpenLotto empowers everybody to become a lottery creator, unlocking the potential for limitless creativity. Users have the freedom to customize various aspects of the lottery experience, ranging from introducing innovative lottery logics and dynamics to setting ticket prices and determining income distribution. Creators hold complete autonomy to design exceptional winner selection mechanisms and decide how prizes are distributed among lucky participants.
+
+This flexibility for the creation of lotteries enriches the gaming experience for all participants, offering an enticing and diverse range of lotteries to explore and engage with.
 
 ## Features
 
