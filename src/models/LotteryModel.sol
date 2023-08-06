@@ -9,6 +9,10 @@ import {UD60x18, ud} from "@prb/math/UD60x18.sol";
 import "@models/TicketModel.sol";
 
 abstract contract LotteryOperatorInterface is AccessControl {
+    using LotteryModel for LotteryModel.LotteryItem;
+
+    error OutOfResolutionRange();
+
     bytes32 public constant OPERATOR_CONTROLER_ROLE = keccak256("OPERATOR_CONTROLER_ROLE");
 
     constructor() {
@@ -54,7 +58,12 @@ abstract contract LotteryOperatorInterface is AccessControl {
         virtual public
         onlyRole(OPERATOR_CONTROLER_ROLE)
     {
-        _resolveRound(lottery_id, lottery, round, seed);
+        uint256 resolutionBlock = lottery.resolutionBlock(round);
+        if (resolutionBlock < block.number && block.number < resolutionBlock + 256) {
+            _resolveRound(lottery_id, lottery, round, seed);
+        } else {
+            revert OutOfResolutionRange();
+        }
     }
 
     function _createLottery(uint32 id, LotteryModel.LotteryItem memory lottery) virtual internal;
@@ -78,6 +87,8 @@ library LotteryModel {
     error InvalidPrizePool();
     /// @dev rror thrown when the adddress of the lottery operator is not a contract.
     error InvalidOperator();
+    /// @dev Error throun when a round is not valid;
+    error InvalidRound();
     /// @dev Error throun when a lottery is expired (all rounds are done).
     error LotteryExpired();
     /// @dev Error thrown when the ticket rounds are not compatible with the lottery.
@@ -181,6 +192,7 @@ library LotteryModel {
         internal pure 
         returns(uint256 blockNumber)
     {
+        if (round == 0) revert InvalidRound();
         if (round > lottery.Rounds) revert LotteryExpired();
         blockNumber = lottery.InitBlock + round * lottery.RoundBlocks;
     }

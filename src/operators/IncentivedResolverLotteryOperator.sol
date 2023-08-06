@@ -25,14 +25,14 @@ abstract contract IncentivedResolverLotteryOperatorInterface is LotteryOperatorI
         override public
         onlyRole(OPERATOR_CONTROLER_ROLE)
     {
+        super.ResolveRound(lottery_id, lottery, round, seed);
+
         uint256 amount = UnresolvedBetsPerLotteryRound[lottery_id][round] * (address(this).balance / UnresolvedBets);
 
         UnresolvedBets -= UnresolvedBetsPerLotteryRound[lottery_id][round];
         UnresolvedBetsPerLotteryRound[lottery_id][round] = 0;
-
-        super.ResolveRound(lottery_id, lottery, round, seed);
     
-        if (amount > 0) payable(tx.origin).transfer(amount);  
+        if (amount > 0) payable(tx.origin).transfer(amount);
     }
 
     receive() external payable {}
