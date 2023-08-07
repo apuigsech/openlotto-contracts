@@ -36,7 +36,7 @@ This flexibility for the creation of lotteries enriches the gaming experience fo
 
 - OpenLotto upholds the core principles of fairness by implementing fully transparent and auditable algorithms. This transparency empowers players to independently verify the entire process of selecting winners, leaving no room for doubt or bias.
 
-- n line with our commitment to fairness, OpenLotto ensures that every participant enjoys an equal opportunity to win. The outcome of each lottery draw is solely determined by chance, establishing an equitable gaming environment.
+- In line with the commitment to fairness, OpenLotto ensures that every participant enjoys an equal opportunity to win. The outcome of each lottery draw is solely determined by chance, establishing an equitable gaming environment.
 
 ### Diverse and Customizable
 

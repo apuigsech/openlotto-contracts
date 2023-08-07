@@ -9,12 +9,16 @@ import "@src/OpenLotto.sol";
 
 
 contract LotteryOperator is LotteryOperatorInterface {
+    constructor() {
+        resolutionBlocksRange = 256;
+    }
+
     function _createLottery(uint32, LotteryModel.LotteryItem memory) override internal {}
     function _createTicket(uint32 id, TicketModel.TicketItem memory ticket) override internal {}
     function _isValidTicket(LotteryModel.LotteryItem memory, TicketModel.TicketItem memory ticket) override internal pure {}
     function _ticketCombinations(TicketModel.TicketItem memory) override internal pure returns(uint16) { return 1; }
     function _ticketPrizes(uint32, LotteryModel.LotteryItem memory, uint32, TicketModel.TicketItem memory, uint32) override internal pure returns(uint32) { return 0; }  
-    function _resolveRound(uint32, LotteryModel.LotteryItem memory lottery, uint32 round, uint256) override internal {}
+    function _resolveRound(uint32, LotteryModel.LotteryItem memory lottery, uint32 round, uint256) override internal returns(bool) { return true; }
 }
 
 contract testLotteryOperator is Test {
@@ -94,6 +98,9 @@ contract testLotteryOperator is Test {
 
         vm.roll(lottery.resolutionBlock(1) + 1);
 
+        openlotto.ResolveRound(lottery_id, 1);
+
+        vm.expectRevert(LotteryOperatorInterface.AlreadyResolved.selector);
         openlotto.ResolveRound(lottery_id, 1);
     }
 }

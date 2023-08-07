@@ -3,6 +3,7 @@ pragma solidity ^0.8.19;
 
 import "@openzeppelin/access/AccessControl.sol";
 import "@openzeppelin/utils/Address.sol";
+import "@openzeppelin/utils/structs/BitMaps.sol";
 
 import {UD60x18, ud} from "@prb/math/UD60x18.sol";
 
@@ -10,8 +11,15 @@ import "@models/TicketModel.sol";
 
 abstract contract LotteryOperatorInterface is AccessControl {
     using LotteryModel for LotteryModel.LotteryItem;
+    using BitMaps for BitMaps.BitMap;
 
     error OutOfResolutionRange();
+
+    error AlreadyResolved();
+
+    uint256 internal resolutionBlocksRange;
+
+    mapping(uint32 => BitMaps.BitMap) Resolved;
 
     bytes32 public constant OPERATOR_CONTROLER_ROLE = keccak256("OPERATOR_CONTROLER_ROLE");
 
@@ -58,12 +66,16 @@ abstract contract LotteryOperatorInterface is AccessControl {
         virtual public
         onlyRole(OPERATOR_CONTROLER_ROLE)
     {
+
+        if (_isResolved(lottery_id, round)) revert AlreadyResolved();
+
         uint256 resolutionBlock = lottery.resolutionBlock(round);
-        if (resolutionBlock < block.number && block.number < resolutionBlock + 256) {
-            _resolveRound(lottery_id, lottery, round, seed);
-        } else {
+
+        if (resolutionBlock >= block.number || block.number > resolutionBlock + resolutionBlocksRange) {
             revert OutOfResolutionRange();
         }
+
+        if (_resolveRound(lottery_id, lottery, round, seed)) _setResolved(lottery_id, round);
     }
 
     function _createLottery(uint32 id, LotteryModel.LotteryItem memory lottery) virtual internal;
@@ -71,7 +83,26 @@ abstract contract LotteryOperatorInterface is AccessControl {
     function _isValidTicket(LotteryModel.LotteryItem memory lottery, TicketModel.TicketItem memory ticket) virtual internal pure;
     function _ticketCombinations(TicketModel.TicketItem memory ticket) virtual internal pure returns(uint16);
     function _ticketPrizes(uint32 lottery_id, LotteryModel.LotteryItem memory lottery, uint32 ticket_id, TicketModel.TicketItem memory ticket, uint32 round) virtual internal returns(uint32);
-    function _resolveRound(uint32 lottery_id, LotteryModel.LotteryItem memory lottery, uint32 round, uint256 seed) virtual internal;
+    function _resolveRound(uint32 lottery_id, LotteryModel.LotteryItem memory lottery, uint32 round, uint256 seed) virtual internal returns(bool);
+
+    function _setResolved(uint32 lottery_id, uint32 round)
+        internal
+    {
+        return Resolved[lottery_id].set(round);
+    }
+
+    function _isResolved(uint32 lottery_id, uint32 round)
+        internal
+        returns(bool)
+    {
+        return Resolved[lottery_id].get(round);
+    }
+
+    function _setResolutionBlocksRange(uint256 n)
+        internal 
+    {
+        resolutionBlocksRange = n;
+    }
 }
 
 /// @title Library containing the data model and functions related to the LotteryItem struct.
@@ -87,6 +118,8 @@ library LotteryModel {
     error InvalidPrizePool();
     /// @dev rror thrown when the adddress of the lottery operator is not a contract.
     error InvalidOperator();
+
+    // Other custom errors
     /// @dev Error throun when a round is not valid;
     error InvalidRound();
     /// @dev Error throun when a lottery is expired (all rounds are done).

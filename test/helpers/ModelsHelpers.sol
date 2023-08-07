@@ -16,7 +16,7 @@ contract DummyLotteryOperator is LotteryOperatorInterface {
     function _isValidTicket(LotteryModel.LotteryItem memory, TicketModel.TicketItem memory) override internal pure {}
     function _ticketCombinations(TicketModel.TicketItem memory) override internal pure returns(uint16) { return 1; }
     function _ticketPrizes(uint32, LotteryModel.LotteryItem memory, uint32, TicketModel.TicketItem memory, uint32) override internal pure returns(uint32) { return 0; }  
-    function _resolveRound(uint32, LotteryModel.LotteryItem memory, uint32, uint256) override internal {}
+    function _resolveRound(uint32, LotteryModel.LotteryItem memory, uint32, uint256) override internal returns(bool) { return true; }
 
     function testEnableAuthorization() public {
         AuthorizationEnabled = true;
