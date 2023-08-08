@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
+import "@openzeppelin/token/ERC721/ERC721.sol";
 import "@openzeppelin/access/AccessControl.sol";
 
 import "@models/LotteryModel.sol";
@@ -8,7 +9,7 @@ import "@models/TicketModel.sol";
 import "@database/LotteryDatabase.sol";
 import "@database/TicketDatabase.sol";
 
-contract OpenLotto is AccessControl {
+contract OpenLotto is ERC721, AccessControl {
     using LotteryModel for LotteryModel.LotteryItem;
     using TicketModel for TicketModel.TicketItem;
 
@@ -26,7 +27,9 @@ contract OpenLotto is AccessControl {
     mapping(uint32 => uint256) public Reserve;
     mapping(uint32 => mapping(uint32 => uint256)) public RoundJackpot;
 
-    constructor(LotteryDatabase _lottery_db, TicketDatabase _ticket_db) {
+    constructor(LotteryDatabase _lottery_db, TicketDatabase _ticket_db) 
+        ERC721("OpenLottoTicket", "LOTTO")
+    {
         lottery_db = _lottery_db;
         ticket_db = _ticket_db;
 
@@ -90,6 +93,7 @@ contract OpenLotto is AccessControl {
 
         id = ticket_db.Create(ticket);
         lottery.Operator.CreateTicket(id, ticket);
+        _mint(msg.sender, id);
     }
 
     function ReadTicket(uint32 id)
@@ -126,11 +130,18 @@ contract OpenLotto is AccessControl {
         uint32[] memory winnersCount = lottery.Operator.LotteryWinnersCount(ticket.LotteryID, lottery, round);
 
         uint256 withdrawAmount = 0;
-        for (uint32 i = 0 ; i <= winnersCount.length ; i++) {
-            if (ticketPrizes & uint32(1 << i) != 0) {
-                withdrawAmount = withdrawAmount + 
-                    (ud(RoundJackpot[ticket.LotteryID][round]) * lottery.PrizePoolShare[i]).unwrap() / winnersCount[i];
+        for (uint32 i = 0 ; i < winnersCount.length ; i++) {
+            if (winnersCount[i] > 0) {
+                if ((ticketPrizes & uint32(1 << i)) != 0) {
+                    withdrawAmount = withdrawAmount + (ud(RoundJackpot[ticket.LotteryID][round]) * lottery.PrizePoolShare[i]).unwrap() / winnersCount[i];
+                }
             }
         }
+
+        payable(ownerOf(id)).call{value: withdrawAmount}("");
+    }
+
+    function supportsInterface(bytes4 interfaceId) public view virtual override(ERC721, AccessControl) returns (bool) {
+        return super.supportsInterface(interfaceId);
     }
 }
