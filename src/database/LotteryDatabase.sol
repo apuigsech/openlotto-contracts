@@ -9,9 +9,7 @@ contract LotteryDatabase is DatabaseEnumerable {
 
     LotteryModelStorage.LotteryStorage data;
 
-    constructor() DatabaseEnumerable("Lottery") {
-        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
-    }
+    constructor() DatabaseEnumerable("Lottery") {}
 
     function Create(LotteryModel.LotteryItem calldata lottery)
         external

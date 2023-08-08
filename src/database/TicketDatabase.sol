@@ -9,9 +9,7 @@ contract TicketDatabase is Database {
 
     TicketModelStorage.TicketStorage data;
 
-    constructor() Database("Ticket") {
-        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
-    }
+    constructor() Database("Ticket") {}
 
     function Create(TicketModel.TicketItem calldata ticket) 
         external
