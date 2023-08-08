@@ -78,12 +78,23 @@ abstract contract LotteryOperatorInterface is AccessControl {
         if (_resolveRound(lottery_id, lottery, round, seed)) _setResolved(lottery_id, round);
     }
 
+    function LotteryWinnersCount(uint32 lottery_id, LotteryModel.LotteryItem memory lottery, uint32 round)
+        public
+        returns(uint32[] memory)
+    {
+        return _lotteryWinnersCount(lottery_id, lottery, round);
+    }
+
+
+
     function _createLottery(uint32 id, LotteryModel.LotteryItem memory lottery) virtual internal;
     function _createTicket(uint32 id, TicketModel.TicketItem memory ticket) virtual internal;
     function _isValidTicket(LotteryModel.LotteryItem memory lottery, TicketModel.TicketItem memory ticket) virtual internal pure;
     function _ticketCombinations(TicketModel.TicketItem memory ticket) virtual internal pure returns(uint16);
     function _ticketPrizes(uint32 lottery_id, LotteryModel.LotteryItem memory lottery, uint32 ticket_id, TicketModel.TicketItem memory ticket, uint32 round) virtual internal returns(uint32);
     function _resolveRound(uint32 lottery_id, LotteryModel.LotteryItem memory lottery, uint32 round, uint256 seed) virtual internal returns(bool);
+    function _lotteryWinnersCount(uint32 lottery_id, LotteryModel.LotteryItem memory lottery, uint32 round) virtual internal returns(uint32[] memory);
+
 
     function _setResolved(uint32 lottery_id, uint32 round)
         internal
@@ -150,6 +161,7 @@ library LotteryModel {
         UD60x18[_MAX_DISTRIBUTIONPOOL] DistributionPoolShare;       // Share (%) for the distribution pool entries.
 
         UD60x18[_MAX_PRIZEPOOL] PrizePoolShare;                     // Share (%) for the prize pool entries.
+        bytes8[_MAX_PRIZEPOOL] PrizePoolAttributes;                 // Attributes for the prize pool entries.
 
         LotteryOperatorInterface Operator;                          // Contract that 'operates' this lottery.
         bytes16 Attributes;                                         // Attributes for the operator.

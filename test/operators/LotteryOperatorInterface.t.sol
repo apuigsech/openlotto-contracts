@@ -19,6 +19,8 @@ contract LotteryOperator is LotteryOperatorInterface {
     function _ticketCombinations(TicketModel.TicketItem memory) override internal pure returns(uint16) { return 1; }
     function _ticketPrizes(uint32, LotteryModel.LotteryItem memory, uint32, TicketModel.TicketItem memory, uint32) override internal pure returns(uint32) { return 0; }  
     function _resolveRound(uint32, LotteryModel.LotteryItem memory lottery, uint32 round, uint256) override internal returns(bool) { return true; }
+    function _lotteryWinnersCount(uint32 lottery_id, LotteryModel.LotteryItem memory lottery, uint32 round) override internal returns(uint32[] memory winnersCount) {}
+
 }
 
 contract testLotteryOperator is Test {

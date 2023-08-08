@@ -99,11 +99,12 @@ contract OpenLotto is AccessControl {
         return ticket_db.Read(id);
     }
 
-    function ResolveRound(uint32 id, uint32 round) public {
+    function ResolveRound(uint32 id, uint32 round) 
+        public 
+    {
         LotteryModel.LotteryItem memory lottery = lottery_db.Read(id);
         lottery.Operator.ResolveRound(id, lottery, round, 0);
     }
-
 
     function TicketPrizes(uint32 id, uint32 round)
         public
@@ -113,5 +114,23 @@ contract OpenLotto is AccessControl {
         LotteryModel.LotteryItem memory lottery = lottery_db.Read(ticket.LotteryID);
 
         return lottery.Operator.TicketPrizes(ticket.LotteryID, lottery, id, ticket, round);
+    }
+
+    function WithdrawTicket(uint32 id, uint32 round)
+        public
+    {
+        TicketModel.TicketItem memory ticket = ticket_db.Read(id);
+        LotteryModel.LotteryItem memory lottery = lottery_db.Read(ticket.LotteryID);
+
+        uint32 ticketPrizes = lottery.Operator.TicketPrizes(ticket.LotteryID, lottery, id, ticket, round);
+        uint32[] memory winnersCount = lottery.Operator.LotteryWinnersCount(ticket.LotteryID, lottery, round);
+
+        uint256 withdrawAmount = 0;
+        for (uint32 i = 0 ; i <= winnersCount.length ; i++) {
+            if (ticketPrizes & uint32(1 << i) != 0) {
+                withdrawAmount = withdrawAmount + 
+                    (ud(RoundJackpot[ticket.LotteryID][round]) * lottery.PrizePoolShare[i]).unwrap() / winnersCount[i];
+            }
+        }
     }
 }
