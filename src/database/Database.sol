@@ -6,7 +6,7 @@ import "@openzeppelin/utils/structs/BitMaps.sol";
 
 
 /**
- * @title CRUD Database Contract
+ * @title Base CRUD Database Contract
  * @dev Manages a database with access control and CRUD (Create, Read, Update, Delete) capabilities for items.
  */
 contract Database is AccessControl {
@@ -130,7 +130,7 @@ contract Database is AccessControl {
 }
 
 /**
- * @title DatabaseEnumerable Contract
+ * @title Base CRUD Database Contract with enumeration (List).
  * @dev Extends the Database contract and adds enumeration functionality to list item IDs.
  */
 contract DatabaseEnumerable is Database {
