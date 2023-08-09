@@ -63,6 +63,7 @@ Attributes of the Lottery data model include:
 - `DistributionPoolTo`: Destination for the distribution pool entries. (address(0) sends money to the reserve, remaining value goes to the jackpot).
 - `DistributionPoolShare`: Share (%) for the distribution pool entries.
 - `PrizePoolShare`: Share (%) for the prize pool entries.
+- `ProzePoolAttributes`: Atributes for the operator to process the prize pool entries.
 - `Operator`: Contract that 'operates' this lottery.
 - `Attributes`: Attributes for the operator.
 

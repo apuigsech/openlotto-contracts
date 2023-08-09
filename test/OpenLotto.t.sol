@@ -14,26 +14,39 @@ contract TestLotteryOperator is DummyLotteryOperator {
     // ticket_id => round => prizes
     mapping (uint32 => mapping(uint32 => uint32)) TicketPrizesTestData;
 
-    // function _ticketPrizes(uint32 lottery_id, LotteryModel.LotteryItem memory lottery, uint32 ticket_id, TicketModel.TicketItem memory, uint32 round) 
-    //     override internal 
-    //     returns(uint32 prizes) 
-    // {
-    //     TicketPrizesTestData[1][10] = 1;    // 00001
-    //     TicketPrizesTestData[1][11] = 2;    // 00010
-    //     TicketPrizesTestData[1][12] = 4;    // 00100
-    //     TicketPrizesTestData[1][13] = 8;    // 01000
-    //     TicketPrizesTestData[1][14] = 16;   // 10000
-    //     TicketPrizesTestData[1][15] = 1;    // 00001
-    //     TicketPrizesTestData[1][26] = 3;    // 00011
-    //     TicketPrizesTestData[1][27] = 7;    // 00111
-    //     TicketPrizesTestData[1][28] = 15;   // 01111
-    //     TicketPrizesTestData[1][29] = 63;   // 11111
+    mapping(uint32 => uint32[]) WinnersCountTestData;
+    
+    function _setTicketPrizesTestData(uint32 ticket_id, uint32 round, uint32 data) 
+        public
+    {
+        TicketPrizesTestData[ticket_id][round] = data;
+    }
 
-    //     return TicketPrizesTestData[ticket_id][round];
-    // }  
+    function _setWinnersCountTestData(uint32 lottery_id, uint32[] memory data) 
+        public
+    {
+        WinnersCountTestData[lottery_id] = data;
+    }
+
+    function _ticketPrizes(uint32 lottery_id, LotteryModel.LotteryItem memory lottery, uint32 ticket_id, TicketModel.TicketItem memory, uint32 round) 
+        override internal 
+        returns(uint32 prizes) 
+    {
+        return TicketPrizesTestData[ticket_id][round];
+    } 
+
+    function _lotteryWinnersCount(uint32 lottery_id, LotteryModel.LotteryItem memory lottery, uint32 round) 
+        override internal 
+        returns(uint32[] memory) 
+    {
+        return(WinnersCountTestData[lottery_id]);
+    }
+
 }
 
 contract testOpenLotto is Test {
+    using LotteryModel for LotteryModel.LotteryItem;
+
     OpenLotto openlotto;
 
     LotteryDatabase lottery_db;
@@ -380,12 +393,119 @@ contract testOpenLotto is Test {
             TicketModel.TicketItem memory ticket = TicketModel.newEmptyTicket();
             ticket.LotteryID = lottery_id;
             ticket.LotteryRoundInit = 1;
-            ticket.LotteryRoundFini = 1;
+            ticket.LotteryRoundFini = 2;
             ticket.NumBets = 1;
-            payable(player_accounts[i % 10]).call{value: 40 ether}("");
-            vm.prank(player_accounts[i % 10]);
-            openlotto.BuyTicket{value: 1 ether}(ticket);
-        }        
+            payable(player_accounts[(i+1) % 10]).call{value: 2 ether}("");
+            vm.prank(player_accounts[(i+1) % 10]);
+            openlotto.BuyTicket{value: 2 ether}(ticket);
+        }
+
+        uint32[] memory WinnersCountTestData= new uint32[](5);
+        WinnersCountTestData[0] = 1;
+        WinnersCountTestData[1] = 1;
+        WinnersCountTestData[2] = 2;
+        WinnersCountTestData[3] = 3;
+        WinnersCountTestData[4] = 4;
+        
+        uint32 round = 1;
+        vm.roll(lottery.resolutionBlock(round) + 1);
+
+        testOperator._setWinnersCountTestData(lottery_id, WinnersCountTestData);
+        testOperator._setTicketPrizesTestData(10, round, 1);     // 00001   
+        testOperator._setTicketPrizesTestData(11, round, 2);     // 00010
+        testOperator._setTicketPrizesTestData(12, round, 4);     // 00100
+        testOperator._setTicketPrizesTestData(13, round, 8);    // 01000
+        testOperator._setTicketPrizesTestData(14, round, 16);    // 10000
+
+        /**  
+            - Pot: 100
+                - Win 0:   30
+                - Win 1:   25
+                - Win 2:   20
+                - Win 3:   15
+                - Win 4:   10
+        
+            - Winners:
+                - Win 0:    1
+                - Win 1:    1
+                - Win 2:    2
+                - Win 3:    3
+                - Win 4:    4  
+
+            - Player        0   1   2   3   4   5   6   7   8   9  10 
+                - Win 0:    1   0   0   0   0   0   0   0   0   0   0      
+                - Win 1:    0   1   0   0   0   0   0   0   0   0   0   
+                - Win 2:    0   0   1   0   0   0   0   0   0   0   0
+                - Win 3:    0   0   0   1   0   0   0   0   0   0   0
+                - Win 4:    0   0   0   0   1   0   0   0   0   0   0
+        
+            - Payouts:
+                - Player 0: 30 ether
+                - Player 1: 25 ether
+                - Player 2: 10 ether
+                - Player 3: 5 ether
+                - Player 4: 2.5 ether
+        */
+            
+
+        for (uint32 i = 1 ; i <= 100 ; i++) {
+            openlotto.WithdrawTicket(i, round);
+        }
+
+        assertEq(player_accounts[0].balance, 30 ether);
+        assertEq(player_accounts[1].balance, 25 ether);
+        assertEq(player_accounts[2].balance, 10 ether);
+        assertEq(player_accounts[3].balance, 5 ether);
+        assertEq(player_accounts[4].balance, 2.5 ether);
+
+        round = 2;
+        vm.roll(lottery.resolutionBlock(round) + 1);
+
+        testOperator._setWinnersCountTestData(lottery_id, WinnersCountTestData);
+        testOperator._setTicketPrizesTestData(10, round, 31);     // 11111   
+        testOperator._setTicketPrizesTestData(11, round, 28);     // 11100
+        testOperator._setTicketPrizesTestData(12, round, 24);     // 11000
+        testOperator._setTicketPrizesTestData(13, round, 16);     // 10000
+
+        /**  
+            - Pot: 100
+                - Win 0:   30
+                - Win 1:   25
+                - Win 2:   20
+                - Win 3:   15
+                - Win 4:   10
+        
+            - Winners:
+                - Win 0:    1
+                - Win 1:    1
+                - Win 2:    2
+                - Win 3:    3
+                - Win 4:    4  
+
+            - Player        0   1   2   3   4   5   6   7   8   9  10 
+                - Win 0:    1   0   0   0   0   0   0   0   0   0   0      
+                - Win 1:    1   0   0   0   0   0   0   0   0   0   0   
+                - Win 2:    1   1   0   0   0   0   0   0   0   0   0
+                - Win 3:    1   1   1   0   0   0   0   0   0   0   0
+                - Win 4:    1   1   1   1   0   0   0   0   0   0   0
+        
+            - Payouts:
+                - Player 0: 72.5 ether
+                - Player 1: 17.5 ether
+                - Player 2: 7.5 ether
+                - Player 3: 2.5 ether
+                - Player 4: 0 ether
+        */
+
+        for (uint32 i = 1 ; i <= 100 ; i++) {
+            openlotto.WithdrawTicket(i, round);
+        }
+
+        assertEq(player_accounts[0].balance, 30 ether + 72.5 ether);
+        assertEq(player_accounts[1].balance, 25 ether + 17.5 ether);
+        assertEq(player_accounts[2].balance, 10 ether + 7.5 ether);
+        assertEq(player_accounts[3].balance, 5 ether + 2.5 ether);
+        assertEq(player_accounts[4].balance, 2.5 ether + 0 ether);
     }
 
 

@@ -7,17 +7,11 @@ import {UD60x18, ud} from "@prb/math/UD60x18.sol";
 
 import "@models/LotteryModel.sol";
 import "@models/TicketModel.sol";
+import "@src/operators/BaseLotteryOperator.sol";
 
-contract DummyLotteryOperator is LotteryOperatorInterface {
+
+contract DummyLotteryOperator is BaseLotteryOperator {
     bool public AuthorizationEnabled = false;
-
-    function _createLottery(uint32, LotteryModel.LotteryItem memory) override internal {}
-    function _createTicket(uint32, TicketModel.TicketItem memory) override internal {}
-    function _isValidTicket(LotteryModel.LotteryItem memory, TicketModel.TicketItem memory) override internal pure {}
-    function _ticketCombinations(TicketModel.TicketItem memory) override internal pure returns(uint16) { return 1; }
-    function _ticketPrizes(uint32, LotteryModel.LotteryItem memory, uint32, TicketModel.TicketItem memory, uint32) override internal pure returns(uint32) { return 0; }  
-    function _resolveRound(uint32, LotteryModel.LotteryItem memory, uint32, uint256) override internal returns(bool) { return true; }
-    function _lotteryWinnersCount(uint32 lottery_id, LotteryModel.LotteryItem memory lottery, uint32 round) override internal returns(uint32[] memory winnersCount) {}
 
     function testEnableAuthorization() public {
         AuthorizationEnabled = true;
