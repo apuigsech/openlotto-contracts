@@ -14,7 +14,10 @@ abstract contract LotteryOperatorInterface is AccessControl {
 
     bytes32 public constant OPERATOR_CONTROLER_ROLE = keccak256("OPERATOR_CONTROLER_ROLE");
 
+    uint8 public InitialTicketState;
+
     constructor() {
+        InitialTicketState = 0;
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 

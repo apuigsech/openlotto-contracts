@@ -15,6 +15,10 @@ contract TestLotteryOperator is DummyLotteryOperator {
     mapping (uint32 => mapping(uint32 => uint32)) TicketPrizesTestData;
 
     mapping(uint32 => uint32[]) WinnersCountTestData;
+
+    constructor() DummyLotteryOperator() {
+        InitialTicketState = 1; // STATE_CLAIMED
+    }
     
     function _setTicketPrizesTestData(uint32 ticket_id, uint32 round, uint32 data) 
         public
@@ -393,11 +397,11 @@ contract testOpenLotto is Test {
             TicketModel.TicketItem memory ticket = TicketModel.newEmptyTicket();
             ticket.LotteryID = lottery_id;
             ticket.LotteryRoundInit = 1;
-            ticket.LotteryRoundFini = 2;
+            ticket.LotteryRoundFini = 3;
             ticket.NumBets = 1;
-            payable(player_accounts[(i+1) % 10]).call{value: 2 ether}("");
+            payable(player_accounts[(i+1) % 10]).call{value: 3 ether}("");
             vm.prank(player_accounts[(i+1) % 10]);
-            openlotto.BuyTicket{value: 2 ether}(ticket);
+            openlotto.BuyTicket{value: 3 ether}(ticket);
         }
 
         uint32[] memory WinnersCountTestData= new uint32[](5);
@@ -411,10 +415,19 @@ contract testOpenLotto is Test {
         vm.roll(lottery.resolutionBlock(round) + 1);
 
         testOperator._setWinnersCountTestData(lottery_id, WinnersCountTestData);
+        testOperator._setTicketPrizesTestData(10, round, 1);     // 00001
+        openlotto.WithdrawTicket(10, round);
+        vm.expectRevert(OpenLotto.TicketAlreadyWithdrawn.selector);
+        openlotto.WithdrawTicket(10, round);
+
+        round = 2;
+        vm.roll(lottery.resolutionBlock(round) + 1);
+
+        testOperator._setWinnersCountTestData(lottery_id, WinnersCountTestData);
         testOperator._setTicketPrizesTestData(10, round, 1);     // 00001   
         testOperator._setTicketPrizesTestData(11, round, 2);     // 00010
         testOperator._setTicketPrizesTestData(12, round, 4);     // 00100
-        testOperator._setTicketPrizesTestData(13, round, 8);    // 01000
+        testOperator._setTicketPrizesTestData(13, round, 8);     // 01000
         testOperator._setTicketPrizesTestData(14, round, 16);    // 10000
 
         /**  
@@ -452,13 +465,13 @@ contract testOpenLotto is Test {
             openlotto.WithdrawTicket(i, round);
         }
 
-        assertEq(player_accounts[0].balance, 30 ether);
+        assertEq(player_accounts[0].balance, 30 ether + 30 ether);
         assertEq(player_accounts[1].balance, 25 ether);
         assertEq(player_accounts[2].balance, 10 ether);
         assertEq(player_accounts[3].balance, 5 ether);
         assertEq(player_accounts[4].balance, 2.5 ether);
 
-        round = 2;
+        round = 3;
         vm.roll(lottery.resolutionBlock(round) + 1);
 
         testOperator._setWinnersCountTestData(lottery_id, WinnersCountTestData);
@@ -501,7 +514,7 @@ contract testOpenLotto is Test {
             openlotto.WithdrawTicket(i, round);
         }
 
-        assertEq(player_accounts[0].balance, 30 ether + 72.5 ether);
+        assertEq(player_accounts[0].balance, 30 ether + 30 ether + 72.5 ether);
         assertEq(player_accounts[1].balance, 25 ether + 17.5 ether);
         assertEq(player_accounts[2].balance, 10 ether + 7.5 ether);
         assertEq(player_accounts[3].balance, 5 ether + 2.5 ether);

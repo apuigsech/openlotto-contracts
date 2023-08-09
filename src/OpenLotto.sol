@@ -19,6 +19,10 @@ contract OpenLotto is ERC721, AccessControl {
 
     error InvalidRounds();
 
+    error TicketNotClaimed();
+
+    error TicketAlreadyWithdrawn();
+
     bytes32 public constant LOTTERY_MANAGER_ROLE = keccak256("LOTTERY_MANAGER_ROLE");
 
     LotteryDatabase lottery_db;
@@ -26,6 +30,10 @@ contract OpenLotto is ERC721, AccessControl {
 
     mapping(uint32 => uint256) public Reserve;
     mapping(uint32 => mapping(uint32 => uint256)) public RoundJackpot;
+    mapping(uint32 => mapping(uint32 => uint8)) public TicketState; // Bitmap to define the state of the ticket. (0: Claimed 1: Withdrawn, ...)
+
+    uint8 constant STATE_CLAIMED = 1;
+    uint8 constant STATE_WITHDRAWN = 2;
 
     constructor(LotteryDatabase _lottery_db, TicketDatabase _ticket_db) 
         ERC721("OpenLottoTicket", "LOTTO")
@@ -86,13 +94,15 @@ contract OpenLotto is ERC721, AccessControl {
             }
         }
 
+        id = ticket_db.Create(ticket);
+        lottery.Operator.CreateTicket(id, ticket);
+
         uint valuePerRound = remainingValue.unwrap() / roundsCount;
         for (uint32 round = ticket.LotteryRoundInit ; round <= ticket.LotteryRoundFini ; round++ ) {
             RoundJackpot[ticket.LotteryID][round] += valuePerRound;
+            TicketState[id][round] = lottery.Operator.InitialTicketState();
         }
 
-        id = ticket_db.Create(ticket);
-        lottery.Operator.CreateTicket(id, ticket);
         _mint(msg.sender, id);
     }
 
@@ -116,6 +126,9 @@ contract OpenLotto is ERC721, AccessControl {
     function WithdrawTicket(uint32 id, uint32 round)
         public
     {
+        if ((TicketState[id][round] & STATE_CLAIMED) == 0) revert TicketNotClaimed();
+        if ((TicketState[id][round] & STATE_WITHDRAWN) != 0) revert TicketAlreadyWithdrawn();
+
         TicketModel.TicketItem memory ticket = ticket_db.Read(id);
         LotteryModel.LotteryItem memory lottery = lottery_db.Read(ticket.LotteryID);
 
@@ -130,6 +143,8 @@ contract OpenLotto is ERC721, AccessControl {
                 }
             }
         }
+
+        TicketState[id][round] = TicketState[id][round] | STATE_WITHDRAWN;
 
         payable(ownerOf(id)).call{value: withdrawAmount}("");
     }
