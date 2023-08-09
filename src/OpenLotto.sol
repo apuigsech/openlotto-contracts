@@ -103,13 +103,6 @@ contract OpenLotto is ERC721, AccessControl {
         return ticket_db.Read(id);
     }
 
-    function ResolveRound(uint32 id, uint32 round) 
-        public 
-    {
-        LotteryModel.LotteryItem memory lottery = lottery_db.Read(id);
-        lottery.Operator.ResolveRound(id, lottery, round, 0);
-    }
-
     function TicketPrizes(uint32 id, uint32 round)
         public
         returns(uint32)
