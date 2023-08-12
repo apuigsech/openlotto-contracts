@@ -6,17 +6,18 @@ import "forge-std/Test.sol";
 import "@src/OpenLotto.sol";
 
 library Deployments {
-    function deployDatabases() 
-        internal
-        returns(LotteryDatabase lottery_db, TicketDatabase ticket_db)
-    {
+    function deployDatabases() internal returns (LotteryDatabase lottery_db, TicketDatabase ticket_db) {
         lottery_db = new LotteryDatabase();
         ticket_db = new TicketDatabase();
     }
 
-    function deployOpenLotto(LotteryDatabase lottery_db, TicketDatabase ticket_db, address lottery_manager_role) 
+    function deployOpenLotto(
+        LotteryDatabase lottery_db,
+        TicketDatabase ticket_db,
+        address lottery_manager_role
+    )
         internal
-        returns(OpenLotto openlotto)
+        returns (OpenLotto openlotto)
     {
         openlotto = new OpenLotto(lottery_db, ticket_db);
 
@@ -28,10 +29,7 @@ library Deployments {
         openlotto.grantRole(openlotto.LOTTERY_MANAGER_ROLE(), lottery_manager_role);
     }
 
-    function deployAll(address lottery_manager_role)
-        internal
-        returns(OpenLotto openlotto)
-    {
+    function deployAll(address lottery_manager_role) internal returns (OpenLotto openlotto) {
         (LotteryDatabase lottery_db, TicketDatabase ticket_db) = deployDatabases();
         openlotto = deployOpenLotto(lottery_db, ticket_db, lottery_manager_role);
     }

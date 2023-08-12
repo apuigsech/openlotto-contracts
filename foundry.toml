@@ -2,5 +2,17 @@
 src = "src"
 out = "out"
 libs = ["lib"]
+gas_reports = ["OpenLotto"]
+optimizer = true
+optimizer_runs = 200
+ignored_error_codes = ["license", "code-size"]
 
-# See more config options https://github.com/foundry-rs/foundry/tree/master/config
+[fmt]
+tab_width = 4
+bracket_spacing = true
+line_length = 120
+multiline_func_header = 'all'
+wrap_comments = true
+int_types = "long"
+number_underscore = "thousands"
+quote_style = "double"

@@ -9,22 +9,28 @@ import "@models/LotteryModel.sol";
 contract wrapLotteryModel {
     using LotteryModel for LotteryModel.LotteryItem;
 
-    function isValid(LotteryModel.LotteryItem memory lottery)
-        public view
-    {
+    function isValid(LotteryModel.LotteryItem memory lottery) public view {
         lottery.isValid();
     }
 
-    function nextRoundOnBlock(LotteryModel.LotteryItem memory lottery, uint256 blockNumber)
-        public pure 
-        returns (uint32 round) 
+    function nextRoundOnBlock(
+        LotteryModel.LotteryItem memory lottery,
+        uint256 blockNumber
+    )
+        public
+        pure
+        returns (uint32 round)
     {
         round = lottery.nextRoundOnBlock(blockNumber);
     }
 
-    function resolutionBlock(LotteryModel.LotteryItem memory lottery, uint32 round)
-        public pure 
-        returns (uint256 blockNumber) 
+    function resolutionBlock(
+        LotteryModel.LotteryItem memory lottery,
+        uint32 round
+    )
+        public
+        pure
+        returns (uint256 blockNumber)
     {
         blockNumber = lottery.resolutionBlock(round);
     }
@@ -35,35 +41,25 @@ contract wrapLotteryModelStorage {
 
     LotteryModelStorage.LotteryStorage data;
 
-    function set(uint32 id, LotteryModel.LotteryItem calldata lottery)
-        public
-    {
-        data.set(id, lottery);        
+    function set(uint32 id, LotteryModel.LotteryItem calldata lottery) public {
+        data.set(id, lottery);
     }
 
-    function unset(uint32 id)
-        public
-    {
+    function unset(uint32 id) public {
         data.unset(id);
     }
 
-    function get(uint32 id)
-        public view
-        returns (LotteryModel.LotteryItem memory lottery)
-    {
+    function get(uint32 id) public view returns (LotteryModel.LotteryItem memory lottery) {
         lottery = data.get(id);
-    }    
+    }
 }
-
 
 contract testLotteryModel is Test {
     using LotteryModel for LotteryModel.LotteryItem;
 
     LotteryModel.LotteryItem lottery_storage;
 
-    function testItemStorageGas() 
-        public
-    {
+    function testItemStorageGas() public {
         vm.pauseGasMetering();
         LotteryModel.LotteryItem memory lottery = ModelsHelpers.newFilledLottery();
         vm.resumeGasMetering();
@@ -71,9 +67,7 @@ contract testLotteryModel is Test {
         lottery_storage = lottery;
     }
 
-    function testIsValid()
-        public
-    {
+    function testIsValid() public {
         wrapLotteryModel wrap = new wrapLotteryModel();
 
         LotteryModel.LotteryItem memory lottery;
@@ -115,9 +109,7 @@ contract testLotteryModel is Test {
         wrap.isValid(lottery);
     }
 
-    function testNextRoundOnBlock() 
-        public
-    {
+    function testNextRoundOnBlock() public {
         wrapLotteryModel wrap = new wrapLotteryModel();
 
         LotteryModel.LotteryItem memory lottery;
@@ -141,9 +133,7 @@ contract testLotteryModel is Test {
         wrap.nextRoundOnBlock(lottery, 2100);
     }
 
-    function testResolutionBlock() 
-        public
-    {
+    function testResolutionBlock() public {
         wrapLotteryModel wrap = new wrapLotteryModel();
 
         LotteryModel.LotteryItem memory lottery;
@@ -161,30 +151,25 @@ contract testLotteryModel is Test {
         vm.expectRevert(LotteryModel.LotteryExpired.selector);
         wrap.resolutionBlock(lottery, 11);
     }
-
 }
 
 contract testLotteryModelStorage is Test {
-    function testSet()
-        public
-    {
-        wrapLotteryModelStorage wrap = new wrapLotteryModelStorage(); 
+    function testSet() public {
+        wrapLotteryModelStorage wrap = new wrapLotteryModelStorage();
 
         LotteryModel.LotteryItem memory lottery;
 
-        lottery = ModelsHelpers.newFilledLottery(); 
+        lottery = ModelsHelpers.newFilledLottery();
         wrap.set(1, lottery);
         wrap.get(1);
     }
 
-    function testUnset()
-        public
-    {
-        wrapLotteryModelStorage wrap = new wrapLotteryModelStorage(); 
+    function testUnset() public {
+        wrapLotteryModelStorage wrap = new wrapLotteryModelStorage();
 
         LotteryModel.LotteryItem memory lottery;
 
-        lottery = ModelsHelpers.newFilledLottery(); 
+        lottery = ModelsHelpers.newFilledLottery();
         wrap.set(1, lottery);
         wrap.get(1);
 
@@ -194,23 +179,21 @@ contract testLotteryModelStorage is Test {
         wrap.get(1);
     }
 
-    function testGet()
-        public
-    {
-        wrapLotteryModelStorage wrap = new wrapLotteryModelStorage(); 
+    function testGet() public {
+        wrapLotteryModelStorage wrap = new wrapLotteryModelStorage();
 
         LotteryModel.LotteryItem memory lottery;
 
         vm.expectRevert(LotteryModelStorage.InvalidID.selector);
         wrap.get(1);
 
-        lottery = ModelsHelpers.newFilledLottery(); 
+        lottery = ModelsHelpers.newFilledLottery();
         lottery.Name = "one";
         wrap.set(1, lottery);
-        lottery = ModelsHelpers.newFilledLottery(); 
+        lottery = ModelsHelpers.newFilledLottery();
         lottery.Name = "two";
         wrap.set(2, lottery);
-        lottery = ModelsHelpers.newFilledLottery(); 
+        lottery = ModelsHelpers.newFilledLottery();
         lottery.Name = "three";
         wrap.set(3, lottery);
 
@@ -219,6 +202,6 @@ contract testLotteryModelStorage is Test {
         lottery = wrap.get(2);
         assertEq(lottery.Name, "two");
         lottery = wrap.get(3);
-        assertEq(lottery.Name, "three");     
+        assertEq(lottery.Name, "three");
     }
 }

@@ -9,9 +9,7 @@ import "@src/database/LotteryDatabase.sol";
 contract testLotteryDatabase is Test {
     LotteryDatabase database;
 
-    function setUp()
-        public 
-    {
+    function setUp() public {
         database = new LotteryDatabase();
         database.grantRole(database.CREATE_ROLE(), address(this));
         database.grantRole(database.READ_ROLE(), address(this));
@@ -19,9 +17,7 @@ contract testLotteryDatabase is Test {
         database.grantRole(database.DELETE_ROLE(), address(this));
     }
 
-    function testCreate() 
-        public
-    {
+    function testCreate() public {
         LotteryModel.LotteryItem memory lottery;
 
         lottery = ModelsHelpers.newFilledLottery();
@@ -45,9 +41,7 @@ contract testLotteryDatabase is Test {
         assertEq(database.Create(lottery), 3);
     }
 
-    function testRead()
-        public
-    {
+    function testRead() public {
         LotteryModel.LotteryItem memory lottery;
 
         vm.expectRevert(LotteryModelStorage.InvalidID.selector);
@@ -71,9 +65,7 @@ contract testLotteryDatabase is Test {
         assertEq(lottery.Name, "three");
     }
 
-    function testUpdate()
-        public
-    {
+    function testUpdate() public {
         LotteryModel.LotteryItem memory lottery;
 
         lottery = ModelsHelpers.newFilledLottery();
@@ -96,9 +88,7 @@ contract testLotteryDatabase is Test {
         assertEq(lottery.Name, "one again");
     }
 
-    function testDelete()
-        public
-    {
+    function testDelete() public {
         LotteryModel.LotteryItem memory lottery;
 
         vm.expectRevert(LotteryModelStorage.InvalidID.selector);
@@ -111,7 +101,7 @@ contract testLotteryDatabase is Test {
         database.Delete(id_1);
 
         vm.expectRevert(LotteryModelStorage.InvalidID.selector);
-        database.Read(id_1);         
+        database.Read(id_1);
 
         vm.expectRevert(LotteryModelStorage.InvalidID.selector);
         database.Delete(id_1);

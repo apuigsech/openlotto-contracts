@@ -9,9 +9,7 @@ import "@src/database/TicketDatabase.sol";
 contract testTicketDatabase is Test {
     TicketDatabase database;
 
-    function setUp()
-        public 
-    {
+    function setUp() public {
         database = new TicketDatabase();
         database.grantRole(database.CREATE_ROLE(), address(this));
         database.grantRole(database.READ_ROLE(), address(this));
@@ -19,9 +17,7 @@ contract testTicketDatabase is Test {
         database.grantRole(database.DELETE_ROLE(), address(this));
     }
 
-    function testCreate() 
-        public
-    {
+    function testCreate() public {
         TicketModel.TicketItem memory ticket;
 
         ticket = ModelsHelpers.newFilledTicket();
@@ -41,9 +37,7 @@ contract testTicketDatabase is Test {
         assertEq(database.Create(ticket), 3);
     }
 
-    function testRead()
-        public
-    {
+    function testRead() public {
         TicketModel.TicketItem memory ticket;
 
         vm.expectRevert(TicketModelStorage.InvalidID.selector);

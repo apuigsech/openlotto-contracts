@@ -30,41 +30,34 @@ contract OpenLotto is ERC721, AccessControl {
 
     mapping(uint32 => uint256) public Reserve;
     mapping(uint32 => mapping(uint32 => uint256)) public RoundJackpot;
-    mapping(uint32 => mapping(uint32 => uint8)) public TicketState; // Bitmap to define the state of the ticket. (0: Claimed 1: Withdrawn, ...)
+    mapping(uint32 => mapping(uint32 => uint8)) public TicketState; // Bitmap to define the state of the ticket. (0:
+        // Claimed 1: Withdrawn, ...)
 
     uint8 constant STATE_CLAIMED = 1;
     uint8 constant STATE_WITHDRAWN = 2;
 
-    constructor(LotteryDatabase _lottery_db, TicketDatabase _ticket_db) 
-        ERC721("OpenLottoTicket", "LOTTO")
-    {
+    constructor(LotteryDatabase _lottery_db, TicketDatabase _ticket_db) ERC721("OpenLottoTicket", "LOTTO") {
         lottery_db = _lottery_db;
         ticket_db = _ticket_db;
 
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
-    function CreateLottery(LotteryModel.LotteryItem calldata lottery) 
+    function CreateLottery(LotteryModel.LotteryItem calldata lottery)
         public
         onlyRole(LOTTERY_MANAGER_ROLE)
-        returns(uint32 id)
+        returns (uint32 id)
     {
         lottery.isValid();
         id = lottery_db.Create(lottery);
         lottery.Operator.CreateLottery(id, lottery);
     }
 
-    function ReadLottery(uint32 id)
-        public view
-        returns(LotteryModel.LotteryItem memory lottery)
-    {
+    function ReadLottery(uint32 id) public view returns (LotteryModel.LotteryItem memory lottery) {
         return lottery_db.Read(id);
     }
 
-    function BuyTicket(TicketModel.TicketItem calldata ticket)
-        public payable
-        returns(uint32 id)
-    {
+    function BuyTicket(TicketModel.TicketItem calldata ticket) public payable returns (uint32 id) {
         ticket.isValid();
         LotteryModel.LotteryItem memory lottery = lottery_db.Read(ticket.LotteryID);
         lottery.isValidTicket(ticket);
@@ -73,7 +66,7 @@ contract OpenLotto is ERC721, AccessControl {
         if (ticket.LotteryRoundInit < lottery.nextRound()) revert InvalidRounds();
 
         uint32 roundsCount = 1 + ticket.LotteryRoundFini - ticket.LotteryRoundInit;
-        
+
         uint256 ticketCost = lottery.BetPrice;
         ticketCost *= ticket.NumBets;
         ticketCost *= lottery.Operator.TicketCombinations(ticket);
@@ -83,11 +76,11 @@ contract OpenLotto is ERC721, AccessControl {
 
         UD60x18 totalValue = ud(msg.value);
         UD60x18 remainingValue = totalValue;
-        for (uint i ; i < LotteryModel.MAX_DISTRIBUTIONPOOL() ; i++) {
+        for (uint256 i; i < LotteryModel.MAX_DISTRIBUTIONPOOL(); i++) {
             UD60x18 distributeValue = totalValue * lottery.DistributionPoolShare[i];
             remainingValue = remainingValue - distributeValue;
             if (address(lottery.DistributionPoolTo[i]) != address(0)) {
-                (bool sent,) = payable(lottery.DistributionPoolTo[i]).call{value: distributeValue.unwrap()}("");
+                (bool sent,) = payable(lottery.DistributionPoolTo[i]).call{ value: distributeValue.unwrap() }("");
                 if (!sent) revert DistributionFailed();
             } else {
                 Reserve[ticket.LotteryID] += distributeValue.unwrap();
@@ -97,8 +90,8 @@ contract OpenLotto is ERC721, AccessControl {
         id = ticket_db.Create(ticket);
         lottery.Operator.CreateTicket(id, ticket);
 
-        uint valuePerRound = remainingValue.unwrap() / roundsCount;
-        for (uint32 round = ticket.LotteryRoundInit ; round <= ticket.LotteryRoundFini ; round++ ) {
+        uint256 valuePerRound = remainingValue.unwrap() / roundsCount;
+        for (uint32 round = ticket.LotteryRoundInit; round <= ticket.LotteryRoundFini; round++) {
             RoundJackpot[ticket.LotteryID][round] += valuePerRound;
             TicketState[id][round] = lottery.Operator.InitialTicketState();
         }
@@ -106,26 +99,18 @@ contract OpenLotto is ERC721, AccessControl {
         _mint(msg.sender, id);
     }
 
-    function ReadTicket(uint32 id)
-        public view
-        returns(TicketModel.TicketItem memory ticket)
-    {
+    function ReadTicket(uint32 id) public view returns (TicketModel.TicketItem memory ticket) {
         return ticket_db.Read(id);
     }
 
-    function TicketPrizes(uint32 id, uint32 round)
-        public
-        returns(uint32)
-    {
+    function TicketPrizes(uint32 id, uint32 round) public returns (uint32) {
         TicketModel.TicketItem memory ticket = ticket_db.Read(id);
         LotteryModel.LotteryItem memory lottery = lottery_db.Read(ticket.LotteryID);
 
         return lottery.Operator.TicketPrizes(ticket.LotteryID, lottery, id, ticket, round);
     }
 
-    function WithdrawTicket(uint32 id, uint32 round)
-        public
-    {
+    function WithdrawTicket(uint32 id, uint32 round) public {
         if ((TicketState[id][round] & STATE_CLAIMED) == 0) revert TicketNotClaimed();
         if ((TicketState[id][round] & STATE_WITHDRAWN) != 0) revert TicketAlreadyWithdrawn();
 
@@ -136,17 +121,18 @@ contract OpenLotto is ERC721, AccessControl {
         uint32[] memory winnersCount = lottery.Operator.LotteryWinnersCount(ticket.LotteryID, lottery, round);
 
         uint256 withdrawAmount = 0;
-        for (uint32 i = 0 ; i < winnersCount.length ; i++) {
+        for (uint32 i = 0; i < winnersCount.length; i++) {
             if (winnersCount[i] > 0) {
                 if ((ticketPrizes & uint32(1 << i)) != 0) {
-                    withdrawAmount = withdrawAmount + (ud(RoundJackpot[ticket.LotteryID][round]) * lottery.PrizePoolShare[i]).unwrap() / winnersCount[i];
+                    withdrawAmount = withdrawAmount
+                        + (ud(RoundJackpot[ticket.LotteryID][round]) * lottery.PrizePoolShare[i]).unwrap() / winnersCount[i];
                 }
             }
         }
 
         TicketState[id][round] = TicketState[id][round] | STATE_WITHDRAWN;
 
-        payable(ownerOf(id)).call{value: withdrawAmount}("");
+        payable(ownerOf(id)).call{ value: withdrawAmount }("");
     }
 
     function supportsInterface(bytes4 interfaceId) public view virtual override(ERC721, AccessControl) returns (bool) {

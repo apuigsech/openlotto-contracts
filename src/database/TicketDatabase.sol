@@ -13,17 +13,14 @@ contract TicketDatabase is Database {
 
     TicketModelStorage.TicketStorage data;
 
-    constructor() Database("Ticket") {}
+    constructor() Database("Ticket") { }
 
     /**
      * @dev Creates a new ticket.
      * @param ticket The data of the ticket to be created.
      * @return id The unique ID of the created ticket.
      */
-    function Create(TicketModel.TicketItem calldata ticket) 
-        external
-        returns(uint32 id)
-    {
+    function Create(TicketModel.TicketItem calldata ticket) external returns (uint32 id) {
         id = _create();
         data.set(id, ticket);
     }
@@ -33,10 +30,7 @@ contract TicketDatabase is Database {
      * @param id The ID of the ticket to be read.
      * @return ticket The data of the requested ticket.
      */
-    function Read(uint32 id) 
-        external view
-        returns(TicketModel.TicketItem memory ticket)
-    {
+    function Read(uint32 id) external view returns (TicketModel.TicketItem memory ticket) {
         _read(id);
         ticket = data.get(id);
     }

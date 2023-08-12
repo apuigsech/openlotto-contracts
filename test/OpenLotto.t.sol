@@ -10,42 +10,48 @@ import "@test/helpers/Deployments.sol";
 import "@src/OpenLotto.sol";
 
 contract TestLotteryOperator is DummyLotteryOperator {
-
     // ticket_id => round => prizes
-    mapping (uint32 => mapping(uint32 => uint32)) TicketPrizesTestData;
+    mapping(uint32 => mapping(uint32 => uint32)) TicketPrizesTestData;
 
     mapping(uint32 => uint32[]) WinnersCountTestData;
 
     constructor() DummyLotteryOperator() {
         InitialTicketState = 1; // STATE_CLAIMED
     }
-    
-    function _setTicketPrizesTestData(uint32 ticket_id, uint32 round, uint32 data) 
-        public
-    {
+
+    function _setTicketPrizesTestData(uint32 ticket_id, uint32 round, uint32 data) public {
         TicketPrizesTestData[ticket_id][round] = data;
     }
 
-    function _setWinnersCountTestData(uint32 lottery_id, uint32[] memory data) 
-        public
-    {
+    function _setWinnersCountTestData(uint32 lottery_id, uint32[] memory data) public {
         WinnersCountTestData[lottery_id] = data;
     }
 
-    function _ticketPrizes(uint32 lottery_id, LotteryModel.LotteryItem memory lottery, uint32 ticket_id, TicketModel.TicketItem memory, uint32 round) 
-        override internal 
-        returns(uint32 prizes) 
+    function _ticketPrizes(
+        uint32 lottery_id,
+        LotteryModel.LotteryItem memory lottery,
+        uint32 ticket_id,
+        TicketModel.TicketItem memory,
+        uint32 round
+    )
+        internal
+        override
+        returns (uint32 prizes)
     {
         return TicketPrizesTestData[ticket_id][round];
-    } 
-
-    function _lotteryWinnersCount(uint32 lottery_id, LotteryModel.LotteryItem memory lottery, uint32 round) 
-        override internal 
-        returns(uint32[] memory) 
-    {
-        return(WinnersCountTestData[lottery_id]);
     }
 
+    function _lotteryWinnersCount(
+        uint32 lottery_id,
+        LotteryModel.LotteryItem memory lottery,
+        uint32 round
+    )
+        internal
+        override
+        returns (uint32[] memory)
+    {
+        return (WinnersCountTestData[lottery_id]);
+    }
 }
 
 contract testOpenLotto is Test {
@@ -60,40 +66,43 @@ contract testOpenLotto is Test {
 
     address lottery_manager_role = makeAddr("lottery_manager_role");
 
-    address[3] distribution_pool = [
-        makeAddr("distribution_pool[0]"), makeAddr("distribution_pool[1]"), makeAddr("distribution_pool[2]")
-    ];
+    address[3] distribution_pool =
+        [makeAddr("distribution_pool[0]"), makeAddr("distribution_pool[1]"), makeAddr("distribution_pool[2]")];
 
     address[10] player_accounts = [
-        makeAddr("player_0"), makeAddr("player_1"), makeAddr("player_2"), makeAddr("player_3"), makeAddr("player_4"),
-        makeAddr("player_5"), makeAddr("player_6"), makeAddr("player_7"), makeAddr("player_8"), makeAddr("player_9")
+        makeAddr("player_0"),
+        makeAddr("player_1"),
+        makeAddr("player_2"),
+        makeAddr("player_3"),
+        makeAddr("player_4"),
+        makeAddr("player_5"),
+        makeAddr("player_6"),
+        makeAddr("player_7"),
+        makeAddr("player_8"),
+        makeAddr("player_9")
     ];
 
-    function setUp() 
-        public
-    {
+    function setUp() public {
         openlotto = Deployments.deployAll(lottery_manager_role);
 
         testOperator = new TestLotteryOperator();
         testOperator.grantRole(testOperator.OPERATOR_CONTROLER_ROLE(), address(openlotto));
     }
 
-    function testAuthorization() 
-        public
-    {
+    function testAuthorization() public {
         LotteryModel.LotteryItem memory lottery;
 
         lottery = ModelsHelpers.newFilledLottery();
-        vm.expectRevert(RevertDataHelpers.accessControlUnauthorizedAccount(address(this), openlotto.LOTTERY_MANAGER_ROLE()));
+        vm.expectRevert(
+            RevertDataHelpers.accessControlUnauthorizedAccount(address(this), openlotto.LOTTERY_MANAGER_ROLE())
+        );
         openlotto.CreateLottery(lottery);
 
         vm.prank(lottery_manager_role);
         openlotto.CreateLottery(lottery);
     }
 
-    function testCreateLottery() 
-        public
-    {
+    function testCreateLottery() public {
         LotteryModel.LotteryItem memory lottery;
 
         vm.startPrank(lottery_manager_role);
@@ -135,13 +144,11 @@ contract testOpenLotto is Test {
         assertEq(openlotto.CreateLottery(lottery), 1);
         assertEq(openlotto.CreateLottery(lottery), 2);
         assertEq(openlotto.CreateLottery(lottery), 3);
-    
-        vm.stopPrank();
-    } 
 
-    function testReadLottery() 
-        public
-    {
+        vm.stopPrank();
+    }
+
+    function testReadLottery() public {
         LotteryModel.LotteryItem memory lottery;
 
         vm.expectRevert(LotteryModelStorage.InvalidID.selector);
@@ -164,12 +171,10 @@ contract testOpenLotto is Test {
         lottery = openlotto.ReadLottery(id_2);
         assertEq(lottery.Name, "two");
         lottery = openlotto.ReadLottery(id_3);
-        assertEq(lottery.Name, "three");    
+        assertEq(lottery.Name, "three");
     }
 
-    function testBuyTicket() 
-        public
-    {
+    function testBuyTicket() public {
         LotteryModel.LotteryItem memory lottery;
         TicketModel.TicketItem memory ticket;
 
@@ -185,74 +190,74 @@ contract testOpenLotto is Test {
         ticket = ModelsHelpers.newFilledTicket();
         ticket.LotteryID = 0;
         vm.expectRevert(LotteryModelStorage.InvalidID.selector);
-        openlotto.BuyTicket{value: 1 ether}(ticket);
+        openlotto.BuyTicket{ value: 1 ether }(ticket);
 
         ticket = ModelsHelpers.newFilledTicket();
         ticket.LotteryID = lottery_id;
         ticket.LotteryRoundInit = 0;
         vm.expectRevert(TicketModel.InvalidRounds.selector);
-        openlotto.BuyTicket{value: 1 ether}(ticket);
+        openlotto.BuyTicket{ value: 1 ether }(ticket);
 
         ticket = ModelsHelpers.newFilledTicket();
         ticket.LotteryID = lottery_id;
         ticket.LotteryRoundInit = 5;
         ticket.LotteryRoundInit = 4;
         vm.expectRevert(TicketModel.InvalidRounds.selector);
-        openlotto.BuyTicket{value: 1 ether}(ticket);
+        openlotto.BuyTicket{ value: 1 ether }(ticket);
 
         ticket = ModelsHelpers.newFilledTicket();
         ticket.LotteryID = lottery_id;
         ticket.LotteryRoundInit = 1;
         ticket.LotteryRoundFini = 11;
         vm.expectRevert(LotteryModel.InvalidTicketRounds.selector);
-        openlotto.BuyTicket{value: 1 ether}(ticket);
+        openlotto.BuyTicket{ value: 1 ether }(ticket);
 
         ticket = ModelsHelpers.newFilledTicket();
         ticket.LotteryID = lottery_id;
         ticket.LotteryRoundFini = 2;
         vm.expectRevert(OpenLotto.InsuficientFunds.selector);
-        openlotto.BuyTicket{value: 1 ether}(ticket);
+        openlotto.BuyTicket{ value: 1 ether }(ticket);
 
         ticket = ModelsHelpers.newFilledTicket();
         ticket.LotteryID = lottery_id;
         ticket.LotteryRoundFini = 1;
         ticket.NumBets = 2;
         vm.expectRevert(OpenLotto.InsuficientFunds.selector);
-        openlotto.BuyTicket{value: 1 ether}(ticket);
+        openlotto.BuyTicket{ value: 1 ether }(ticket);
 
-       ticket = ModelsHelpers.newFilledTicket();
+        ticket = ModelsHelpers.newFilledTicket();
         ticket.LotteryID = lottery_id;
         ticket.LotteryRoundFini = 2;
         ticket.NumBets = 2;
         vm.expectRevert(OpenLotto.InsuficientFunds.selector);
-        openlotto.BuyTicket{value: 3 ether}(ticket);
+        openlotto.BuyTicket{ value: 3 ether }(ticket);
 
         ticket = ModelsHelpers.newFilledTicket();
         ticket.LotteryID = lottery_id;
         ticket.LotteryRoundFini = 1;
-        assertEq(openlotto.BuyTicket{value: 1 ether}(ticket), 1);
+        assertEq(openlotto.BuyTicket{ value: 1 ether }(ticket), 1);
         ticket.LotteryRoundFini = 5;
-        assertEq(openlotto.BuyTicket{value: 5 ether}(ticket), 2);
+        assertEq(openlotto.BuyTicket{ value: 5 ether }(ticket), 2);
         ticket.LotteryRoundFini = 10;
-        assertEq(openlotto.BuyTicket{value: 10 ether}(ticket), 3);
+        assertEq(openlotto.BuyTicket{ value: 10 ether }(ticket), 3);
         ticket = ModelsHelpers.newFilledTicket();
         ticket.LotteryID = lottery_id;
         ticket.LotteryRoundFini = 1;
         ticket.NumBets = 1;
-        assertEq(openlotto.BuyTicket{value: 5 ether}(ticket), 4);
+        assertEq(openlotto.BuyTicket{ value: 5 ether }(ticket), 4);
         ticket.LotteryRoundFini = 1;
         ticket.NumBets = 5;
-        assertEq(openlotto.BuyTicket{value: 5 ether}(ticket), 5);
+        assertEq(openlotto.BuyTicket{ value: 5 ether }(ticket), 5);
         ticket.LotteryRoundFini = 1;
         ticket.NumBets = 10;
-        assertEq(openlotto.BuyTicket{value: 10 ether}(ticket), 6);
+        assertEq(openlotto.BuyTicket{ value: 10 ether }(ticket), 6);
 
         vm.roll(1099);
         ticket = ModelsHelpers.newFilledTicket();
         ticket.LotteryID = lottery_id;
         ticket.LotteryRoundInit = 1;
         ticket.LotteryRoundFini = 1;
-        openlotto.BuyTicket{value: 1 ether}(ticket);
+        openlotto.BuyTicket{ value: 1 ether }(ticket);
 
         vm.roll(1100);
         ticket = ModelsHelpers.newFilledTicket();
@@ -260,7 +265,7 @@ contract testOpenLotto is Test {
         ticket.LotteryRoundInit = 1;
         ticket.LotteryRoundFini = 1;
         vm.expectRevert(OpenLotto.InvalidRounds.selector);
-        openlotto.BuyTicket{value: 1 ether}(ticket);
+        openlotto.BuyTicket{ value: 1 ether }(ticket);
 
         vm.roll(2100);
         ticket = ModelsHelpers.newFilledTicket();
@@ -268,12 +273,10 @@ contract testOpenLotto is Test {
         ticket.LotteryRoundInit = 1;
         ticket.LotteryRoundFini = 1;
         vm.expectRevert(LotteryModel.LotteryExpired.selector);
-        openlotto.BuyTicket{value: 1 ether}(ticket);
+        openlotto.BuyTicket{ value: 1 ether }(ticket);
     }
 
-    function testDistributionPool()
-        public
-    {
+    function testDistributionPool() public {
         LotteryModel.LotteryItem memory lottery;
         TicketModel.TicketItem memory ticket;
 
@@ -281,7 +284,7 @@ contract testOpenLotto is Test {
         lottery = ModelsHelpers.newFilledLottery();
         lottery.BetPrice = 1 ether;
         lottery.DistributionPoolTo[0] = distribution_pool[0];
-        lottery.DistributionPoolShare[0] = ud(0.10e18);
+        lottery.DistributionPoolShare[0] = ud(0.1e18);
         lottery.DistributionPoolTo[1] = distribution_pool[1];
         lottery.DistributionPoolShare[1] = ud(0.075e18);
         lottery.DistributionPoolTo[2] = distribution_pool[2];
@@ -289,30 +292,28 @@ contract testOpenLotto is Test {
         lottery.DistributionPoolTo[3] = address(0); // Reserve.
         lottery.DistributionPoolShare[3] = ud(0.025e18);
         uint32 lottery_id = openlotto.CreateLottery(lottery);
-        vm.stopPrank(); 
+        vm.stopPrank();
 
         ticket = ModelsHelpers.newFilledTicket();
         ticket.LotteryID = lottery_id;
-        openlotto.BuyTicket{value: 1 ether}(ticket);
+        openlotto.BuyTicket{ value: 1 ether }(ticket);
 
         assertEq(distribution_pool[0].balance, 0.1 ether);
-        assertEq(distribution_pool[1].balance, 0.075 ether); 
+        assertEq(distribution_pool[1].balance, 0.075 ether);
         assertEq(distribution_pool[2].balance, 0.05 ether);
         assertEq(openlotto.Reserve(lottery_id), 0.025 ether);
 
         ticket = ModelsHelpers.newFilledTicket();
         ticket.LotteryID = lottery_id;
-        openlotto.BuyTicket{value: 1 ether}(ticket);
+        openlotto.BuyTicket{ value: 1 ether }(ticket);
 
         assertEq(distribution_pool[0].balance, 0.2 ether);
-        assertEq(distribution_pool[1].balance, 0.15 ether); 
+        assertEq(distribution_pool[1].balance, 0.15 ether);
         assertEq(distribution_pool[2].balance, 0.1 ether);
         assertEq(openlotto.Reserve(lottery_id), 0.05 ether);
-    }    
+    }
 
-    function testRoundJackpots()
-        public
-    {
+    function testRoundJackpots() public {
         LotteryModel.LotteryItem memory lottery;
         TicketModel.TicketItem memory ticket;
 
@@ -322,7 +323,7 @@ contract testOpenLotto is Test {
         lottery.Rounds = 10;
         lottery.BetPrice = 1 ether;
         lottery.DistributionPoolTo[0] = distribution_pool[0];
-        lottery.DistributionPoolShare[0] = ud(0.10e18);
+        lottery.DistributionPoolShare[0] = ud(0.1e18);
         lottery.DistributionPoolTo[1] = distribution_pool[1];
         lottery.DistributionPoolShare[1] = ud(0.075e18);
         lottery.DistributionPoolTo[2] = distribution_pool[2];
@@ -336,7 +337,7 @@ contract testOpenLotto is Test {
         ticket.LotteryID = lottery_id;
         ticket.LotteryRoundInit = 1;
         ticket.LotteryRoundFini = 1;
-        openlotto.BuyTicket{value: 1 ether}(ticket);
+        openlotto.BuyTicket{ value: 1 ether }(ticket);
 
         assertEq(openlotto.RoundJackpot(lottery_id, 1), 0.75 ether);
 
@@ -344,7 +345,7 @@ contract testOpenLotto is Test {
         ticket.LotteryID = lottery_id;
         ticket.LotteryRoundInit = 1;
         ticket.LotteryRoundFini = 5;
-        openlotto.BuyTicket{value: 5 ether}(ticket);
+        openlotto.BuyTicket{ value: 5 ether }(ticket);
 
         assertEq(openlotto.RoundJackpot(lottery_id, 1), 1.5 ether);
         assertEq(openlotto.RoundJackpot(lottery_id, 2), 0.75 ether);
@@ -356,7 +357,7 @@ contract testOpenLotto is Test {
         ticket.LotteryID = lottery_id;
         ticket.LotteryRoundInit = 1;
         ticket.LotteryRoundFini = 10;
-        openlotto.BuyTicket{value: 10 ether}(ticket);
+        openlotto.BuyTicket{ value: 10 ether }(ticket);
 
         assertEq(openlotto.RoundJackpot(lottery_id, 1), 2.25 ether);
         assertEq(openlotto.RoundJackpot(lottery_id, 2), 1.5 ether);
@@ -370,52 +371,50 @@ contract testOpenLotto is Test {
         assertEq(openlotto.RoundJackpot(lottery_id, 10), 0.75 ether);
     }
 
-    function testWithdrawTicket()
-        public
-    {
+    function testWithdrawTicket() public {
         LotteryModel.LotteryItem memory lottery = LotteryModel.newEmptyLottery();
         lottery.Name = "Dummy";
         lottery.InitBlock = 0;
         lottery.Rounds = 10;
         lottery.RoundBlocks = 100;
         lottery.BetPrice = 1 ether;
-        lottery.PrizePoolShare[0] = ud(0.30e18);
+        lottery.PrizePoolShare[0] = ud(0.3e18);
         lottery.PrizePoolAttributes[0] = bytes8(uint64(0));
         lottery.PrizePoolShare[1] = ud(0.25e18);
         lottery.PrizePoolAttributes[1] = bytes8(uint64(2));
-        lottery.PrizePoolShare[2] = ud(0.20e18);
+        lottery.PrizePoolShare[2] = ud(0.2e18);
         lottery.PrizePoolAttributes[2] = bytes8(uint64(5));
         lottery.PrizePoolShare[3] = ud(0.15e18);
         lottery.PrizePoolAttributes[3] = bytes8(uint64(10));
-        lottery.PrizePoolShare[4] = ud(0.10e18);             
+        lottery.PrizePoolShare[4] = ud(0.1e18);
         lottery.PrizePoolAttributes[4] = bytes8(uint64(15));
         lottery.Operator = testOperator;
         vm.prank(lottery_manager_role);
         uint32 lottery_id = openlotto.CreateLottery(lottery);
 
-        for (uint i ; i < 100 ; i++) {
+        for (uint256 i; i < 100; i++) {
             TicketModel.TicketItem memory ticket = TicketModel.newEmptyTicket();
             ticket.LotteryID = lottery_id;
             ticket.LotteryRoundInit = 1;
             ticket.LotteryRoundFini = 3;
             ticket.NumBets = 1;
-            payable(player_accounts[(i+1) % 10]).call{value: 3 ether}("");
-            vm.prank(player_accounts[(i+1) % 10]);
-            openlotto.BuyTicket{value: 3 ether}(ticket);
+            payable(player_accounts[(i + 1) % 10]).call{ value: 3 ether }("");
+            vm.prank(player_accounts[(i + 1) % 10]);
+            openlotto.BuyTicket{ value: 3 ether }(ticket);
         }
 
-        uint32[] memory WinnersCountTestData= new uint32[](5);
+        uint32[] memory WinnersCountTestData = new uint32[](5);
         WinnersCountTestData[0] = 1;
         WinnersCountTestData[1] = 1;
         WinnersCountTestData[2] = 2;
         WinnersCountTestData[3] = 3;
         WinnersCountTestData[4] = 4;
-        
+
         uint32 round = 1;
         vm.roll(lottery.resolutionBlock(round) + 1);
 
         testOperator._setWinnersCountTestData(lottery_id, WinnersCountTestData);
-        testOperator._setTicketPrizesTestData(10, round, 1);     // 00001
+        testOperator._setTicketPrizesTestData(10, round, 1); // 00001
         openlotto.WithdrawTicket(10, round);
         vm.expectRevert(OpenLotto.TicketAlreadyWithdrawn.selector);
         openlotto.WithdrawTicket(10, round);
@@ -424,44 +423,43 @@ contract testOpenLotto is Test {
         vm.roll(lottery.resolutionBlock(round) + 1);
 
         testOperator._setWinnersCountTestData(lottery_id, WinnersCountTestData);
-        testOperator._setTicketPrizesTestData(10, round, 1);     // 00001   
-        testOperator._setTicketPrizesTestData(11, round, 2);     // 00010
-        testOperator._setTicketPrizesTestData(12, round, 4);     // 00100
-        testOperator._setTicketPrizesTestData(13, round, 8);     // 01000
-        testOperator._setTicketPrizesTestData(14, round, 16);    // 10000
+        testOperator._setTicketPrizesTestData(10, round, 1); // 00001
+        testOperator._setTicketPrizesTestData(11, round, 2); // 00010
+        testOperator._setTicketPrizesTestData(12, round, 4); // 00100
+        testOperator._setTicketPrizesTestData(13, round, 8); // 01000
+        testOperator._setTicketPrizesTestData(14, round, 16); // 10000
 
-        /**  
-            - Pot: 100
-                - Win 0:   30
-                - Win 1:   25
-                - Win 2:   20
-                - Win 3:   15
-                - Win 4:   10
-        
-            - Winners:
-                - Win 0:    1
-                - Win 1:    1
-                - Win 2:    2
-                - Win 3:    3
-                - Win 4:    4  
+        /**
+         * - Pot: 100
+         *             - Win 0:   30
+         *             - Win 1:   25
+         *             - Win 2:   20
+         *             - Win 3:   15
+         *             - Win 4:   10
+         *     
+         *         - Winners:
+         *             - Win 0:    1
+         *             - Win 1:    1
+         *             - Win 2:    2
+         *             - Win 3:    3
+         *             - Win 4:    4  
+         * 
+         *         - Player        0   1   2   3   4   5   6   7   8   9  10 
+         *             - Win 0:    1   0   0   0   0   0   0   0   0   0   0      
+         *             - Win 1:    0   1   0   0   0   0   0   0   0   0   0   
+         *             - Win 2:    0   0   1   0   0   0   0   0   0   0   0
+         *             - Win 3:    0   0   0   1   0   0   0   0   0   0   0
+         *             - Win 4:    0   0   0   0   1   0   0   0   0   0   0
+         *     
+         *         - Payouts:
+         *             - Player 0: 30 ether
+         *             - Player 1: 25 ether
+         *             - Player 2: 10 ether
+         *             - Player 3: 5 ether
+         *             - Player 4: 2.5 ether
+         */
 
-            - Player        0   1   2   3   4   5   6   7   8   9  10 
-                - Win 0:    1   0   0   0   0   0   0   0   0   0   0      
-                - Win 1:    0   1   0   0   0   0   0   0   0   0   0   
-                - Win 2:    0   0   1   0   0   0   0   0   0   0   0
-                - Win 3:    0   0   0   1   0   0   0   0   0   0   0
-                - Win 4:    0   0   0   0   1   0   0   0   0   0   0
-        
-            - Payouts:
-                - Player 0: 30 ether
-                - Player 1: 25 ether
-                - Player 2: 10 ether
-                - Player 3: 5 ether
-                - Player 4: 2.5 ether
-        */
-            
-
-        for (uint32 i = 1 ; i <= 100 ; i++) {
+        for (uint32 i = 1; i <= 100; i++) {
             openlotto.WithdrawTicket(i, round);
         }
 
@@ -475,42 +473,42 @@ contract testOpenLotto is Test {
         vm.roll(lottery.resolutionBlock(round) + 1);
 
         testOperator._setWinnersCountTestData(lottery_id, WinnersCountTestData);
-        testOperator._setTicketPrizesTestData(10, round, 31);     // 11111   
-        testOperator._setTicketPrizesTestData(11, round, 28);     // 11100
-        testOperator._setTicketPrizesTestData(12, round, 24);     // 11000
-        testOperator._setTicketPrizesTestData(13, round, 16);     // 10000
+        testOperator._setTicketPrizesTestData(10, round, 31); // 11111
+        testOperator._setTicketPrizesTestData(11, round, 28); // 11100
+        testOperator._setTicketPrizesTestData(12, round, 24); // 11000
+        testOperator._setTicketPrizesTestData(13, round, 16); // 10000
 
-        /**  
-            - Pot: 100
-                - Win 0:   30
-                - Win 1:   25
-                - Win 2:   20
-                - Win 3:   15
-                - Win 4:   10
-        
-            - Winners:
-                - Win 0:    1
-                - Win 1:    1
-                - Win 2:    2
-                - Win 3:    3
-                - Win 4:    4  
+        /**
+         * - Pot: 100
+         *             - Win 0:   30
+         *             - Win 1:   25
+         *             - Win 2:   20
+         *             - Win 3:   15
+         *             - Win 4:   10
+         *     
+         *         - Winners:
+         *             - Win 0:    1
+         *             - Win 1:    1
+         *             - Win 2:    2
+         *             - Win 3:    3
+         *             - Win 4:    4  
+         * 
+         *         - Player        0   1   2   3   4   5   6   7   8   9  10 
+         *             - Win 0:    1   0   0   0   0   0   0   0   0   0   0      
+         *             - Win 1:    1   0   0   0   0   0   0   0   0   0   0   
+         *             - Win 2:    1   1   0   0   0   0   0   0   0   0   0
+         *             - Win 3:    1   1   1   0   0   0   0   0   0   0   0
+         *             - Win 4:    1   1   1   1   0   0   0   0   0   0   0
+         *     
+         *         - Payouts:
+         *             - Player 0: 72.5 ether
+         *             - Player 1: 17.5 ether
+         *             - Player 2: 7.5 ether
+         *             - Player 3: 2.5 ether
+         *             - Player 4: 0 ether
+         */
 
-            - Player        0   1   2   3   4   5   6   7   8   9  10 
-                - Win 0:    1   0   0   0   0   0   0   0   0   0   0      
-                - Win 1:    1   0   0   0   0   0   0   0   0   0   0   
-                - Win 2:    1   1   0   0   0   0   0   0   0   0   0
-                - Win 3:    1   1   1   0   0   0   0   0   0   0   0
-                - Win 4:    1   1   1   1   0   0   0   0   0   0   0
-        
-            - Payouts:
-                - Player 0: 72.5 ether
-                - Player 1: 17.5 ether
-                - Player 2: 7.5 ether
-                - Player 3: 2.5 ether
-                - Player 4: 0 ether
-        */
-
-        for (uint32 i = 1 ; i <= 100 ; i++) {
+        for (uint32 i = 1; i <= 100; i++) {
             openlotto.WithdrawTicket(i, round);
         }
 
@@ -521,9 +519,5 @@ contract testOpenLotto is Test {
         assertEq(player_accounts[4].balance, 2.5 ether + 0 ether);
     }
 
-
-    function testReadTicket()
-        public
-    {
-    }
+    function testReadTicket() public { }
 }

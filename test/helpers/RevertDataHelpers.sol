@@ -9,10 +9,7 @@ import "@models/LotteryModel.sol";
 import "@models/TicketModel.sol";
 
 library RevertDataHelpers {
-    function accessControlUnauthorizedAccount(address account, bytes32 role) 
-        internal pure 
-        returns(bytes memory) 
-    {
+    function accessControlUnauthorizedAccount(address account, bytes32 role) internal pure returns (bytes memory) {
         return bytes(
             abi.encodePacked(
                 "AccessControl: account ",

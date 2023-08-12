@@ -13,10 +13,7 @@ library Random {
      * @param blockNumber The block number used as the source for the seed.
      * @return seed The generated seed for random number generation.
      */
-    function seedFromBlock(uint256 blockNumber)
-        internal view
-        returns(bytes32 seed)
-    {
+    function seedFromBlock(uint256 blockNumber) internal view returns (bytes32 seed) {
         seed = blockhash(blockNumber);
         if (seed == 0) revert InvalidBlockNumber();
     }
@@ -29,9 +26,15 @@ library Random {
      * @param nonce A nonce used to generate different numbers with the same seed.
      * @return randomNumber The generated random number.
      */
-    function generateNumber(uint256 lower, uint256 upper, bytes32 seed, uint256 nonce) 
-        internal pure
-        returns(uint256 randomNumber)
+    function generateNumber(
+        uint256 lower,
+        uint256 upper,
+        bytes32 seed,
+        uint256 nonce
+    )
+        internal
+        pure
+        returns (uint256 randomNumber)
     {
         uint256 r = uint256(keccak256(abi.encodePacked(seed, nonce)));
         randomNumber = lower + r % (upper - lower);
@@ -40,7 +43,7 @@ library Random {
 
 /**
  * @title Random Cached Seed Contract
- * @dev Contract that utilizes the Random library to generate random numbers with cached seeds. 
+ * @dev Contract that utilizes the Random library to generate random numbers with cached seeds.
  * To be able to retrieve previously used seeds after blockhash is not accesible.
  */
 contract RandomCachedSeed {
@@ -52,10 +55,7 @@ contract RandomCachedSeed {
      * @param blockNumber The block number for which to retrieve the seed.
      * @return seed The cached seed associated with the block number.
      */
-    function _seed(uint256 blockNumber)
-        internal
-        returns(bytes32 seed)
-    {
+    function _seed(uint256 blockNumber) internal returns (bytes32 seed) {
         if (CachedSeeds[blockNumber] == 0) CachedSeeds[blockNumber] = Random.seedFromBlock(blockNumber);
         seed = CachedSeeds[blockNumber];
     }
