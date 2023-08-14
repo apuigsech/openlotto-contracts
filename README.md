@@ -77,3 +77,40 @@ Attributes of the Ticket data model include:
 - `LotteryRoundInit`: Starting round of the lottery for which the ticket is playing.
 - `LotteryRoundFini`: Ending round of the lottery for which the ticket is playing.
 - `NumBets`: Number of bets the ticket is processing (typically 1). The ticket cost and prize are affected by this value.
+
+## Donations
+
+If you find OpenLotto valuable and would like to support its development and maintenance, you can contribute through donations. Your contributions will go a long way in helping us continue to improve and expand the capabilities of the platform.
+
+- Bitcoin: _TBD_
+- Ethereum: _TBD_
+
+## Usage
+
+### Test
+
+To run all tests for OpenLotto, you can use the following command:
+
+```
+forge test
+```
+
+This command will execute the test suite to ensure the functionality of the OpenLotto smartcontracts.
+
+### Deploy (Local)
+
+To deploy OpenLotto on a blockchain network, you can use the following commands:
+
+1. Run a local `anvil` EMV:
+
+```
+anvil
+```
+
+2. Run the deployment script:
+
+```
+forge script script/DeployOpenLotto.s.sol --tc DeployOpenLotto --rpc-url http://127.0.0.1:8545 --broadcast
+```
+
+These commands will deploy the OpenLotto smart contracts and make them operational on the local network.
