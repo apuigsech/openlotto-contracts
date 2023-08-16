@@ -107,7 +107,7 @@ library LotteryModel {
     error InvalidRoundsConfiguration();
     /// @dev Error thrown when the distribution pool exceeds the 100%.
     error InvalidDistributionPool();
-    /// @dev Error thrown when the prize pool exceeds the 100%.
+    /// @dev Error thrown when the prize pool is different than the 100%.
     error InvalidPrizePool();
     /// @dev rror thrown when the adddress of the lottery operator is not a contract.
     error InvalidOperator();
