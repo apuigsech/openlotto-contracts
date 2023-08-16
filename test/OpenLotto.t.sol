@@ -178,10 +178,12 @@ contract testOpenLotto is Test {
         LotteryModel.LotteryItem memory lottery;
         TicketModel.TicketItem memory ticket;
 
+        uint initialBlockNumber = block.number;
+
         vm.startPrank(lottery_manager_role);
         lottery = ModelsHelpers.newFilledLottery();
         lottery.Name = "one";
-        lottery.InitBlock = 1000;
+        lottery.InitBlock = initialBlockNumber + 1000;
         lottery.Rounds = 10;
         lottery.RoundBlocks = 100;
         uint32 lottery_id = openlotto.CreateLottery(lottery);
@@ -252,14 +254,14 @@ contract testOpenLotto is Test {
         ticket.NumBets = 10;
         assertEq(openlotto.BuyTicket{ value: 10 ether }(ticket), 6);
 
-        vm.roll(1099);
+        vm.roll(initialBlockNumber + 1099);
         ticket = ModelsHelpers.newFilledTicket();
         ticket.LotteryID = lottery_id;
         ticket.LotteryRoundInit = 1;
         ticket.LotteryRoundFini = 1;
         openlotto.BuyTicket{ value: 1 ether }(ticket);
 
-        vm.roll(1100);
+        vm.roll(initialBlockNumber + 1100);
         ticket = ModelsHelpers.newFilledTicket();
         ticket.LotteryID = lottery_id;
         ticket.LotteryRoundInit = 1;
@@ -267,7 +269,7 @@ contract testOpenLotto is Test {
         vm.expectRevert(OpenLotto.InvalidRounds.selector);
         openlotto.BuyTicket{ value: 1 ether }(ticket);
 
-        vm.roll(2100);
+        vm.roll(initialBlockNumber + 2100);
         ticket = ModelsHelpers.newFilledTicket();
         ticket.LotteryID = lottery_id;
         ticket.LotteryRoundInit = 1;
@@ -374,7 +376,7 @@ contract testOpenLotto is Test {
     function testWithdrawTicket() public {
         LotteryModel.LotteryItem memory lottery = LotteryModel.newEmptyLottery();
         lottery.Name = "Dummy";
-        lottery.InitBlock = 0;
+        lottery.InitBlock = block.number;
         lottery.Rounds = 10;
         lottery.RoundBlocks = 100;
         lottery.BetPrice = 1 ether;

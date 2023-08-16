@@ -26,7 +26,7 @@ contract DummyLotteryOperator is BaseLotteryOperator {
 library ModelsHelpers {
     function newFilledLottery() internal returns (LotteryModel.LotteryItem memory lottery) {
         lottery.Name = "dummy";
-        lottery.InitBlock = 1000;
+        lottery.InitBlock = block.number + 100;
         lottery.Rounds = 10;
         lottery.RoundBlocks = 100;
         lottery.BetPrice = 1 ether;
