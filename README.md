@@ -80,37 +80,40 @@ Attributes of the Ticket data model include:
 
 ## Donations
 
-If you find OpenLotto valuable and would like to support its development and maintenance, you can contribute through donations. Your contributions will go a long way in helping us continue to improve and expand the capabilities of the platform.
+If you find OpenLotto valuable and would like to support its development and maintenance, you can contribute through donations. Here are several ways you may do so:
 
-- Bitcoin: _TBD_
-- Ethereum: _TBD_
+- **Bitcoin (BTC)**: _TBD_
+- **Ethereum (ETH)**: _TBD_
 
-## Usage
+Thank you ❤️ for considering to donate to me. Your contributions will go a long way in helping us continue to improve and expand the capabilities of the platform.
 
+## Setup
+
+### Dependecies
+- Foundry
+```
+$ curl -L https://foundry.paradigm.xyz | bash
+$ source ~/.bashrc
+$ foundryup
+```
+### Clone
+```
+$ git clone --recurse-submodules https://github.com/apuigsech/openlotto-contracts.git
+```
+### Install Libs
+```
+$ forge install
+```
+### Build 
+```
+$ forge build
+```
 ### Test
-
-To run all tests for OpenLotto, you can use the following command:
-
 ```
-forge test
+$ forge test
 ```
-
-This command will execute the test suite to ensure the functionality of the OpenLotto smartcontracts.
-
 ### Deploy (Local)
-
-To deploy OpenLotto on a blockchain network, you can use the following commands:
-
-1. Run a local `anvil` EMV:
-
 ```
-anvil
+$ anvil
+$ forge script script/DeployOpenLotto.s.sol --tc DeployOpenLotto --rpc-url http://127.0.0.1:8545 --broadcast
 ```
-
-2. Run the deployment script:
-
-```
-forge script script/DeployOpenLotto.s.sol --tc DeployOpenLotto --rpc-url http://127.0.0.1:8545 --broadcast
-```
-
-These commands will deploy the OpenLotto smart contracts and make them operational on the local network.

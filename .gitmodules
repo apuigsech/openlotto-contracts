@@ -8,6 +8,3 @@
 [submodule "lib/prb-math"]
 	path = lib/prb-math
 	url = https://github.com/PaulRBerg/prb-math
-[submodule "lib/vulcan"]
-	path = lib/vulcan
-	url = https://github.com/nomoixyz/vulcan
