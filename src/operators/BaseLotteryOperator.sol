@@ -16,7 +16,7 @@ abstract contract BaseLotteryOperator is LotteryOperatorInterface {
         override
     { }
 
-    function _ticketCombinations(TicketModel.TicketItem memory ticket)
+    function _ticketCombinations(TicketModel.TicketItem memory)
         internal
         pure
         virtual
@@ -38,6 +38,7 @@ abstract contract BaseLotteryOperator is LotteryOperatorInterface {
         override
         returns (uint32)
     { }
+
     function _lotteryWinnersCount(
         uint32 lottery_id,
         LotteryModel.LotteryItem memory lottery,
