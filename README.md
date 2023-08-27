@@ -1,4 +1,4 @@
-# OpenLotto - A Blockchain-based Lottery Platform
+# OpenLotto - An Open-source Blockchain-based Lottery Platform
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
@@ -8,43 +8,32 @@
 
 ### What is OpenLotto?
 
-OpenLotto is a cutting-edge open-source lottery platform built on the blockchain, offering a robust and versatile framework to create a wide range of diverse lotteries with a primary focus on transparency, security, and fairness. By harnessing the capabilities of blockchain technology, OpenLotto aims to redefine the conventional lottery industry, offering a decentralized ecosystem for participants to engage in thrilling games.
+OpenLotto is an open-source blockchain-based lottery platform with focus on transparency, security and fairnes.
+
 
 ### How does it work?
 
-OpenLotto leverages the blockchain technology to establish a tamper-proof and auditable lottery process. Its core functionalities encompass every aspect of the lottery journey; from creating diverse lotteries with unique logics to facilitating ticket sales and transparet prize distribution, without the requirement for intermediaries and central authorities.
+OpenLotto leverages the smart contracts to create a tamper-proof and auditable lottery system, where lottery creators and players can interact in a tamper-proof and auditable environment. This ensures that the lottery rules are adhered to by all parties involved, from the creation of the lottery, the purchase of tickets, the drawing of the winners, to the distribution of the prizes. 
 
-OpenLotto empowers everybody to become a lottery creator, unlocking the potential for limitless creativity. Users have the freedom to customize various aspects of the lottery experience, ranging from introducing innovative lottery logics and dynamics to setting ticket prices and determining income distribution. Creators hold complete autonomy to design exceptional winner selection mechanisms and decide how prizes are distributed among lucky participants.
-
-This flexibility for the creation of lotteries enriches the gaming experience for all participants, offering an enticing and diverse range of lotteries to explore and engage with.
+![Diagram](README/how-does-it-work.png)
 
 ## Features
 
-### Decentralized and Transparent
+- **Decentralization**: OpenLotto operates on a decentralized blockchain network, harnessing the power of distributed consensus to eliminate the need for trust in a central authority.
 
-- OpenLotto operates on a decentralized blockchain network, harnessing the power of distributed consensus to eliminate the need for trust in a central authority. This decentralized approach fosters a transparent and open ecosystem, where lottery operations are visible to all participants.
+- **Transparency**: All lottery transactions and outcomes are recorded on the blockchain, creating an immutable and publicly accessible ledger. This transparency enables players to audit and verify the entire lottery process.
 
-- All lottery transactions and outcomes are recorded on the blockchain, creating an immutable and publicly accessible ledger. Players and organizers alike can audit and verify the entire lottery process, ensuring utmost transparency and accountability.
+- **Security**: The utilization of blockchain technology ensures the immutability of lottery data, making it tamper-resistant and highly secure. Each transaction and decision is cryptographically linked, creating an unbreakable chain of trust.
 
-### Security and Immutability
+- **Fairness**: OpenLotto sticks to fairness by leveraging transparency to empower lottery players to independently verify the selection process for winners on a equitable gaming environment.
 
-- The utilization of blockchain technology ensures the immutability of lottery data, making it tamper-resistant and highly secure. Each transaction and decision is cryptographically linked, creating an unbreakable chain of trust.
+- **Extensible**: OpenLotto is extensible to enable the creation of various types of lotteries with with a wide spectrum gameplay mechanics.
 
-- Smart contracts, the backbone of OpenLotto, automatically enforce the predefined rules and payout mechanisms without human intervention. This significantly reduces the risk of fraud or manipulation, guaranteeing a fair and reliable lottery experience for all participants.
 
-### Fairness and Verifiability
-
-- OpenLotto upholds the core principles of fairness by implementing fully transparent and auditable algorithms. This transparency empowers players to independently verify the entire process of selecting winners, leaving no room for doubt or bias.
-
-- In line with the commitment to fairness, OpenLotto ensures that every participant enjoys an equal opportunity to win. The outcome of each lottery draw is solely determined by chance, establishing an equitable gaming environment.
-
-### Diverse and Customizable
-
-- OpenLotto offers an expansive range of possibilities, enabling the creation of various types of lotteries with different gameplay mechanics. From traditional lotteries to creative and innovative games, the platform caters to a wide spectrum of preferences.
-
-- Lottery organizers have the freedom to customize parameters such as ticket prices, jackpot size, number ranges, draw frequencies, and more. This level of flexibility enables organizers to curate unique and captivating lottery experiences that resonate with their target audience, enhancing engagement and excitement among participants.
 
 ## Architecture
+
+
 
 ### Data Model
 

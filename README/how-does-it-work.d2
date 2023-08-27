@@ -1,0 +1,36 @@
+lottery_player: lottery player { shape: person }
+lottery_creator: lottery creator { shape: person }
+
+openlotto: OpenLotto {
+  buy_ticket: Buy Ticket
+  claim_prize: Claim Prizes
+
+  lottery: Lottery {
+    style.multiple: true
+
+    tickets: Tickets {
+      style.multiple: true
+      shape: page
+      style.fill-pattern: paper
+    }
+
+    prizes: Prizes {
+      shape: diamond
+      style.fill: "#ffd700"
+    }
+
+    rules: Rules {shape: document}
+  }
+
+  create_lottery: Create Lottery
+}
+
+lottery_creator -> openlotto.create_lottery
+
+lottery_player -> openlotto.buy_ticket
+lottery_player -> openlotto.claim_prize
+
+openlotto.buy_ticket -> openlotto.lottery
+openlotto.claim_prize -> openlotto.lottery
+
+openlotto.create_lottery -> openlotto.lottery
