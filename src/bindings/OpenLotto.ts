@@ -5,15 +5,25 @@ import DatabaseArtifact from "../../out/Database.sol/Database.json"
 
 interface LotteryItem {
     Name: string;
-    InitBlock: number;
+    InitBlock: ethers.BigNumber;
     Rounds: number;
     RoundBlocks: number;
-    BetPrice: number;
-    JackpotMin: number;
-    DistributionPoolTo: string[];
-    DistributionPoolShare: number[];
-    PrizePoolShare: number[];
-    PrizePoolAttributes: string[];
+    BetPrice: ethers.BigNumber;
+    JackpotMin: ethers.BigNumber;
+    DistributionPoolTo: [string, string, string, string, string];
+    DistributionPoolShare: [ethers.BigNumber, ethers.BigNumber, ethers.BigNumber, ethers.BigNumber, ethers.BigNumber];
+    PrizePoolShare: [
+        ethers.BigNumber, ethers.BigNumber, ethers.BigNumber, ethers.BigNumber, ethers.BigNumber,
+        ethers.BigNumber, ethers.BigNumber, ethers.BigNumber, ethers.BigNumber, ethers.BigNumber,
+        ethers.BigNumber, ethers.BigNumber, ethers.BigNumber, ethers.BigNumber, ethers.BigNumber,
+        ethers.BigNumber, ethers.BigNumber, ethers.BigNumber, ethers.BigNumber, ethers.BigNumber
+    ];
+    PrizePoolAttributes: [
+        string, string, string, string, string,
+        string, string, string, string, string,
+        string, string, string, string, string,
+        string, string, string, string, string
+    ];
     Operator: string;
     Attributes: string;
 }
@@ -26,55 +36,134 @@ interface TicketItem {
 }
 
 class OpenLotto extends Contract {
+
     constructor(address: string, signer: Signer) {
         super(address, OpenLottoArtifact["abi"], signer);
     }
 
-    public async CreatedItem(tx: ContractTransaction): Promise<number> {
-        try {
-            const iface = new ethers.utils.Interface(DatabaseArtifact["abi"]);
-            const receipt = await tx.wait();
-            const createdItemEventSignature = iface.getEventTopic("CreatedItem");
-            const events = receipt.events?.filter((e) => e.topics[0] === createdItemEventSignature).map((e) => iface.parseLog(e));
+    public NewEmptyLottery(): LotteryItem {
+        let lottery: LotteryItem = {
+            Name: '',
+            InitBlock: ethers.BigNumber.from('0'),
+            Rounds: 0,
+            RoundBlocks: 0,
+            BetPrice: ethers.BigNumber.from('0'),
+            JackpotMin: ethers.BigNumber.from('0'),
+            DistributionPoolTo: [
+                '0x0000000000000000000000000000000000000000',
+                '0x0000000000000000000000000000000000000000',
+                '0x0000000000000000000000000000000000000000',
+                '0x0000000000000000000000000000000000000000',
+                '0x0000000000000000000000000000000000000000'
+            ],
+
+            DistributionPoolShare: [
+                ethers.BigNumber.from('0'),
+                ethers.BigNumber.from('0'),
+                ethers.BigNumber.from('0'),
+                ethers.BigNumber.from('0'),
+                ethers.BigNumber.from('0')
+            ],
+            PrizePoolShare: [
+                ethers.BigNumber.from('0'),
+                ethers.BigNumber.from('0'),
+                ethers.BigNumber.from('0'),
+                ethers.BigNumber.from('0'),
+                ethers.BigNumber.from('0'),
+                ethers.BigNumber.from('0'),
+                ethers.BigNumber.from('0'),
+                ethers.BigNumber.from('0'),
+                ethers.BigNumber.from('0'),
+                ethers.BigNumber.from('0'),
+                ethers.BigNumber.from('0'),
+                ethers.BigNumber.from('0'),
+                ethers.BigNumber.from('0'),
+                ethers.BigNumber.from('0'),
+                ethers.BigNumber.from('0'),
+                ethers.BigNumber.from('0'),
+                ethers.BigNumber.from('0'),
+                ethers.BigNumber.from('0'),
+                ethers.BigNumber.from('0'),
+                ethers.BigNumber.from('0')
+            ],
+            PrizePoolAttributes: [
+                '0x0000000000000000',
+                '0x0000000000000000',
+                '0x0000000000000000',
+                '0x0000000000000000',
+                '0x0000000000000000',
+                '0x0000000000000000',
+                '0x0000000000000000',
+                '0x0000000000000000',
+                '0x0000000000000000',
+                '0x0000000000000000',
+                '0x0000000000000000',
+                '0x0000000000000000',
+                '0x0000000000000000',
+                '0x0000000000000000',
+                '0x0000000000000000',
+                '0x0000000000000000',
+                '0x0000000000000000',
+                '0x0000000000000000',
+                '0x0000000000000000',
+                '0x0000000000000000'              
+            ],
+            Operator: '0x0000000000000000000000000000000000000000',
+            Attributes: '0x00000000000000000000000000000000'
+        };
+        return lottery;
+    }
+
+
+    public CreatedItem(tx: ContractTransaction): Promise<number> {
+        const iface = new ethers.utils.Interface(DatabaseArtifact["abi"]);
+        const createdItemEventSignature = iface.getEventTopic("CreatedItem");
+        return tx.wait().then(receipt => {
+            const events = receipt.events?.filter(e => e.topics[0] === createdItemEventSignature).map(e => iface.parseLog(e));
             if (events && events.length > 0) {
                 return events[0].args.id;
             } else {
                 throw new Error("CreatedItem event not found");
             }
-        } catch (error) {
+        }).catch(error => {
             console.error(error);
             throw error;
-        }
+        });
     }
 
     public async CreateLottery(lottery: LotteryItem): Promise<ContractTransaction> {
         return this.functions.CreateLottery(lottery);
     }
 
-    public async CreateLotteryAndWait(lottery: LotteryItem): Promise<number> {
-        try {
-            const tx = await this.CreateLottery(lottery);
-            return await this.CreatedItem(tx);
-        } catch (error) {
+    public CreateLotteryAndWait(lottery: LotteryItem): Promise<number> {
+        return this.CreateLottery(lottery).then(tx => {
+            return this.CreatedItem(tx);
+        }).catch(error => {
+            console.error(error);
             throw error;
-        }
+        });
     }
 
     public async ReadLottery(id: number): Promise<LotteryItem> {
-        return this.functions.ReadLottery(id);
+        return this.functions.ReadLottery(id).then(res => {
+            const [Name, InitBlock, Rounds, RoundBlocks, BetPrice, JackpotMin, DistributionPoolTo, DistributionPoolShare, PrizePoolShare, PrizePoolAttributes, Operator, Attributes] = res[0];
+            return {Name, InitBlock, Rounds, RoundBlocks, BetPrice, JackpotMin, DistributionPoolTo, DistributionPoolShare, PrizePoolShare, PrizePoolAttributes, Operator, Attributes};
+        }).catch(error => {
+            console.error(error);
+            throw error;
+        });
     }
 
     public async BuyTicket(ticket: TicketItem, value: number): Promise<ContractTransaction> {
         return this.functions.BuyTicket(ticket, { value: value });
     }
 
-    public async BuyTicketAndWait(ticket: TicketItem, value: number): Promise<number> {
-        try {
-            const tx = await this.BuyTicket(ticket, value);
-            return await this.CreatedItem(tx);
-        } catch (error) {
+    public BuyTicketAndWait(ticket: TicketItem, value: number): Promise<number> {
+        return this.BuyTicket(ticket, value).then(tx => {
+            return this.CreatedItem(tx);
+        }).catch(error => {
             throw error;
-        }
+        });
     }
 
     public async ReadTicket(id: number): Promise<TicketItem> {
@@ -91,5 +180,5 @@ class OpenLotto extends Contract {
 }
 
 export {
-    OpenLotto
+    OpenLotto, LotteryItem
 }
