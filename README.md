@@ -15,7 +15,7 @@ OpenLotto is an open-source blockchain-based lottery platform with focus on tran
 
 OpenLotto leverages the smart contracts to create a tamper-proof and auditable lottery system, where lottery creators and players can interact in a tamper-proof and auditable environment. This ensures that the lottery rules are adhered to by all parties involved, from the creation of the lottery, the purchase of tickets, the drawing of the winners, to the distribution of the prizes. 
 
-![Diagram](README/how-does-it-work.png)
+![How does it work diagram](README/how-does-it-work.png)
 
 ## Features
 
@@ -33,11 +33,33 @@ OpenLotto leverages the smart contracts to create a tamper-proof and auditable l
 
 ## Architecture
 
+The architecture of OpenLotto revolves around three fundamental concepts, each encapsulated within a distinct smart contract. This design promotes both the flexibility and extensibility of the platform.
 
+### Interface
 
-### Data Model
+The **Interface** serves as the primary gateway for interactions with OpenLotto, the Interface offers administrative functions for lottery creation, ticket purchasing, and prize claiming. Additionally, it integrates the ERC721 standard, allowing tickets to be treated as NFTs (Non-Fungible Tokens).
 
-#### Lottery
+- `CreateLottery`: Creates a new lottery with specified atributes. Only users with the LOTTERY_MANAGER_ROLE can call this function.
+
+- `ReadLottery`: Retrieves details of a specific lottery.
+
+- `BuyTicket`: Enables users to purchase a lottery ticket by providing the necessary ticket details and sending the appropriate amount of Ether.
+
+- `ReadTicket`: Retrieves details of a specific ticket.
+
+- `TicketPrizes`:Get the list of prizes for a given ticket in a specific round.
+
+- `WithdrawTicket`: Allows ticket holders to withdraw their winnings for a given ticket in a specific round.
+
+### Lottery Operator
+
+The **Lottery Operator** houses the logic tailored to different types of lottery games. By segregating the game-specific logic into separate operator contracts, OpenLotto can support a wide variety of lottery types without cluttering the main interface.
+
+### Data 
+
+The **Data** stores all data related to lotteries, including the configuration and rules associated to the Lottery Operator, as well as the details of tickets purchased by participants. 
+
+#### Lottery Data Model
 
 The Lottery data model serves as the backbone of individual lottery instances within the platfirm, providing a foundation for creating and managing diverse types of lotteries.
 
@@ -56,7 +78,7 @@ Attributes of the Lottery data model include:
 - `Operator`: Contract that 'operates' this lottery.
 - `Attributes`: Attributes for the operator.
 
-#### Ticket
+#### Ticket Data Model
 
 The Ticket data model represents an individual lottery ticket purchased by a participant, functioning as a vital element for tracking and validating user participation in lotteries. Tickets play a crucial role in verifying and awarding prizes to deserving winners.
 
