@@ -1,23 +1,37 @@
+name: OpenLotto Tests
+
 on:
   push:
     branches:
-      - master
-
-name: openlotto-contracts test
+      - gha
 
 jobs:
-  check:
-    name: Foundry tests
+
+  build:
+    name: Build
     runs-on: ubuntu-latest
+    env:
+      MNEMONIC: 'test test test test test test test test test test test junk'
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
-
-      - name: Install Foundry
-        uses: foundry-rs/foundry-toolchain@v1
+      - uses: foundry-rs/foundry-toolchain@v1
         with:
           version: nightly
+      - run: forge build
 
-      - name: Local tests
-        run: forge test --force -vvv
+      - name: Test Smartcontracts
+        run: forge test -vvv
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 20
+
+      - name: Test Bindings
+        run: |
+          anvil &
+          sleep 5s
+          forge script -vvv script/DeployOpenLottoWithSampleData.s.sol:DeployOpenLotto --rpc-url http://localhost:8545 --private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 --broadcast
+          npm install
+          npm test

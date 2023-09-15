@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "allowImportingTsExtensions": true,
+    "types": ["jest"],
+    "esModuleInterop": true,
+    "resolveJsonModule": true
+  }
+
+}
