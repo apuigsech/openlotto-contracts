@@ -3,7 +3,7 @@ name: OpenLotto Tests
 on:
   push:
     branches:
-      - gha
+      - master
 
 jobs:
 
