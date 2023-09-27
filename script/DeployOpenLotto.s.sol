@@ -9,10 +9,6 @@ contract DeployOpenLotto is Script {
     address internal lotteryManagerAddress = vm.addr(lotteryManagerPrivateKey);
 
     function run() public {
-        uint256 adminPrivateKey = vm.deriveKey(vm.envString("MNEMONIC"), 0);
-        uint256 lotteryManagerPrivateKey = vm.deriveKey(vm.envString("MNEMONIC"), 1);
-        address lotteryManagerAddress = vm.addr(lotteryManagerPrivateKey);
-
         vm.startBroadcast(adminPrivateKey);
         OpenLotto openlotto = Deployments.deployAll(lotteryManagerAddress);
         vm.stopBroadcast();
