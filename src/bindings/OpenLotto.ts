@@ -1,161 +1,87 @@
-import { Contract, ContractTransaction, ethers, Signer } from "ethers";
+import { Contract, ContractTransaction, TransactionResponse, ethers, Signer, Interface } from "ethers";
+import { LotteryItem, TicketItem, NewLottery } from "./models";
 
-import OpenLottoArtifact from "../../out/OpenLotto.sol/OpenLotto.json"
-import DatabaseArtifact from "../../out/Database.sol/Database.json"
+import OpenLottoArtifact from "../../out/OpenLotto.sol/OpenLotto.abi.json"
+import DatabaseArtifact from "../../out/Database.sol/Database.abi.json"
 
-interface LotteryItem {
-    Name: string;
-    InitBlock: ethers.BigNumber;
-    Rounds: number;
-    RoundBlocks: number;
-    BetPrice: ethers.BigNumber;
-    JackpotMin: ethers.BigNumber;
-    DistributionPoolTo: [string, string, string, string, string];
-    DistributionPoolShare: [ethers.BigNumber, ethers.BigNumber, ethers.BigNumber, ethers.BigNumber, ethers.BigNumber];
-    PrizePoolShare: [
-        ethers.BigNumber, ethers.BigNumber, ethers.BigNumber, ethers.BigNumber, ethers.BigNumber,
-        ethers.BigNumber, ethers.BigNumber, ethers.BigNumber, ethers.BigNumber, ethers.BigNumber,
-        ethers.BigNumber, ethers.BigNumber, ethers.BigNumber, ethers.BigNumber, ethers.BigNumber,
-        ethers.BigNumber, ethers.BigNumber, ethers.BigNumber, ethers.BigNumber, ethers.BigNumber
-    ];
-    PrizePoolAttributes: [
-        string, string, string, string, string,
-        string, string, string, string, string,
-        string, string, string, string, string,
-        string, string, string, string, string
-    ];
-    Operator: string;
-    Attributes: string;
+function enableNoSuchMethod(obj) {
+    return new Proxy(obj, {
+        get(target, p) {
+            if (p in target) {
+                return target[p];
+            } else if (typeof target.__noSuchMethod__ == "function") {
+                return function(...args) {
+                    return target.__noSuchMethod__.call(target, p, args);
+                };
+            }
+        }
+    });
 }
 
-interface TicketItem {
-    LotteryID: number;
-    LotteryRoundInit: number;
-    LotteryRoundFini: number;
-    NumBets: number;
+function NewOpenLotto(address: string, signer: Signer) {
+    let openlotto = new OpenLotto(address, signer);
+    return enableNoSuchMethod(openlotto);
 }
 
-class OpenLotto extends Contract {
+class OpenLotto {
+    contract: Contract;
 
     constructor(address: string, signer: Signer) {
-        super(address, OpenLottoArtifact["abi"], signer);
+        this.contract = new ethers.Contract(address, OpenLottoArtifact, signer);
+    }
+
+    __noSuchMethod__(methodName: string, args: any[]) {
+        if (typeof this.contract[methodName] === 'function') {
+            return this.contract[methodName](...args);
+        } else {
+            throw new Error(`Method '${methodName}' not found on OpenLotto or Contract.`);
+        }
     }
 
     public NewEmptyLottery(): LotteryItem {
-        let lottery: LotteryItem = {
-            Name: '',
-            InitBlock: ethers.BigNumber.from('0'),
-            Rounds: 0,
-            RoundBlocks: 0,
-            BetPrice: ethers.BigNumber.from('0'),
-            JackpotMin: ethers.BigNumber.from('0'),
-            DistributionPoolTo: [
-                '0x0000000000000000000000000000000000000000',
-                '0x0000000000000000000000000000000000000000',
-                '0x0000000000000000000000000000000000000000',
-                '0x0000000000000000000000000000000000000000',
-                '0x0000000000000000000000000000000000000000'
-            ],
-
-            DistributionPoolShare: [
-                ethers.BigNumber.from('0'),
-                ethers.BigNumber.from('0'),
-                ethers.BigNumber.from('0'),
-                ethers.BigNumber.from('0'),
-                ethers.BigNumber.from('0')
-            ],
-            PrizePoolShare: [
-                ethers.BigNumber.from('0'),
-                ethers.BigNumber.from('0'),
-                ethers.BigNumber.from('0'),
-                ethers.BigNumber.from('0'),
-                ethers.BigNumber.from('0'),
-                ethers.BigNumber.from('0'),
-                ethers.BigNumber.from('0'),
-                ethers.BigNumber.from('0'),
-                ethers.BigNumber.from('0'),
-                ethers.BigNumber.from('0'),
-                ethers.BigNumber.from('0'),
-                ethers.BigNumber.from('0'),
-                ethers.BigNumber.from('0'),
-                ethers.BigNumber.from('0'),
-                ethers.BigNumber.from('0'),
-                ethers.BigNumber.from('0'),
-                ethers.BigNumber.from('0'),
-                ethers.BigNumber.from('0'),
-                ethers.BigNumber.from('0'),
-                ethers.BigNumber.from('0')
-            ],
-            PrizePoolAttributes: [
-                '0x0000000000000000',
-                '0x0000000000000000',
-                '0x0000000000000000',
-                '0x0000000000000000',
-                '0x0000000000000000',
-                '0x0000000000000000',
-                '0x0000000000000000',
-                '0x0000000000000000',
-                '0x0000000000000000',
-                '0x0000000000000000',
-                '0x0000000000000000',
-                '0x0000000000000000',
-                '0x0000000000000000',
-                '0x0000000000000000',
-                '0x0000000000000000',
-                '0x0000000000000000',
-                '0x0000000000000000',
-                '0x0000000000000000',
-                '0x0000000000000000',
-                '0x0000000000000000'              
-            ],
-            Operator: '0x0000000000000000000000000000000000000000',
-            Attributes: '0x00000000000000000000000000000000'
-        };
-        return lottery;
+        return NewLottery.fromEmpty();
     }
 
 
-    public CreatedItem(tx: ContractTransaction): Promise<number> {
-        const iface = new ethers.utils.Interface(DatabaseArtifact["abi"]);
-        const createdItemEventSignature = iface.getEventTopic("CreatedItem");
+    public CreatedItem(tx: any): Promise<number> {
+        const iface = new Interface(DatabaseArtifact);
+        const createdItemEventSignature = iface.getEvent("CreatedItem");;
         return tx.wait().then(receipt => {
-            const events = receipt.events?.filter(e => e.topics[0] === createdItemEventSignature).map(e => iface.parseLog(e));
-            if (events && events.length > 0) {
-                return events[0].args.id;
+            console.log(">>>", receipt.logs);
+            console.log(createdItemEventSignature);
+            const logs = receipt.logs?.filter(e => e.topics[0] === createdItemEventSignature);
+            if (logs && logs.length > 0) {
+                return logs[0].topic[1];
             } else {
                 throw new Error("CreatedItem event not found");
             }
         }).catch(error => {
-            console.error(error);
             throw error;
         });
     }
 
-    public async CreateLottery(lottery: LotteryItem): Promise<ContractTransaction> {
-        return this.functions.CreateLottery(lottery);
-    }
+    // public CreateLottery(lottery: LotteryItem): any {
+    //     return this.contract.CreateLottery(lottery);
+    // }
 
     public CreateLotteryAndWait(lottery: LotteryItem): Promise<number> {
-        return this.CreateLottery(lottery).then(tx => {
+        return this.contract.CreateLottery(lottery).then(tx => {
             return this.CreatedItem(tx);
         }).catch(error => {
-            console.error(error);
             throw error;
         });
     }
 
     public async ReadLottery(id: number): Promise<LotteryItem> {
-        return this.functions.ReadLottery(id).then(res => {
-            const [Name, InitBlock, Rounds, RoundBlocks, BetPrice, JackpotMin, DistributionPoolTo, DistributionPoolShare, PrizePoolShare, PrizePoolAttributes, Operator, Attributes] = res[0];
-            return {Name, InitBlock, Rounds, RoundBlocks, BetPrice, JackpotMin, DistributionPoolTo, DistributionPoolShare, PrizePoolShare, PrizePoolAttributes, Operator, Attributes};
+        return this.contract.ReadLottery(id).then(result => {
+            return NewLottery.fromResult(result);
         }).catch(error => {
-            console.error(error);
             throw error;
         });
     }
 
     public async BuyTicket(ticket: TicketItem, value: number): Promise<ContractTransaction> {
-        return this.functions.BuyTicket(ticket, { value: value });
+        return this.contract.BuyTicket(ticket, { value: value });
     }
 
     public BuyTicketAndWait(ticket: TicketItem, value: number): Promise<number> {
@@ -167,18 +93,18 @@ class OpenLotto extends Contract {
     }
 
     public async ReadTicket(id: number): Promise<TicketItem> {
-        return this.functions.ReadTicket(id);
+        return this.contract.ReadTicket(id);
     }
 
     public async TicketPrizes(id: number, round: number): Promise<number> {
-        return this.functions.TicketPrizes(id, round);
+        return this.contract.TicketPrizes(id, round);
     }
 
     public async WithdrawTicket(id: number, round: number): Promise<ContractTransaction> {
-        return this.functions.WithdrawTicket(id, round);
+        return this.contract.WithdrawTicket(id, round);
     }
 }
 
 export {
-    OpenLotto, LotteryItem
+    OpenLotto, LotteryItem, TicketItem, NewOpenLotto
 }
