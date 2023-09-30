@@ -1,0 +1,9 @@
+{
+  "extends": "solhint:recommended",
+  "rules": {
+    "var-name-mixedcase": "off",
+    "func-name-mixedcase": "off",
+    "no-empty-blocks": "off",
+    "one-contract-per-file": "off"
+  }
+}

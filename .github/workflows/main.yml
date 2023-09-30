@@ -1,0 +1,56 @@
+name: Main
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  lint-contracts:
+    name: Lint Contracts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 20
+      - run: |
+          npm install -g solhint
+          solhint -f table src/**/*.sol
+  test-contracts:
+    name: Test Contracts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+      - name: build
+        run: forge build
+      - name: test
+        run: forge test -vvv
+  test-bindings:
+    name: Test Bindings
+    runs-on: ubuntu-latest
+    env:
+      MNEMONIC: 'test test test test test test test test test test test junk'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive 
+      - uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly   
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 20
+      - name: deploy
+        run: |
+          anvil &> /dev/null &
+          sleep 4s
+          forge script -vvv script/DeployOpenLottoWithSampleData.s.sol:DeployOpenLotto --rpc-url http://localhost:8545 --private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 --broadcast
+      - name: test
+        run: |
+          npm install
+          npm test
