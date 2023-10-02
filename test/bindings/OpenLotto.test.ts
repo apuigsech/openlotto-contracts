@@ -32,21 +32,7 @@ describe("OpenLotto", () => {
  
     lottery = NewFilledLottery();
     id = await openlotto.CreateLotteryAndWait(lottery);
-    expect(id).toEqual(2);
-    
-    // openlotto.contract.CreateLottery(lottery).then(tx => {
-    //   console.log(tx);
-    //   tx.wait().then(receipt => {
-    //     let ids = receipt.logs.map((log) => {
-    //       let event = openlotto.lottery_db.interface.parseLog(log);
-    //       if (
-    //         event.name == 'CreatedItem' &&
-    //         event.args[0] == 'Lottery'
-    //       ) {
-    //         return event.args[1]
-    //       }
-    //     })
-    //     console.log(ids);        
+    expect(id).toEqual(1);    
   })
 
   function NewFilledLottery(): LotteryItem {

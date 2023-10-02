@@ -34,7 +34,8 @@ jobs:
     name: Test Bindings
     runs-on: ubuntu-latest
     env:
-      MNEMONIC: 'test test test test test test test test test test test junk'
+      OPENLOTTO_MNEMONIC: 'test test test test test test test test test test test junk'
+      OPENLOTTO_NUM_LOTTERIES: 0
     steps:
       - uses: actions/checkout@v4
         with:
