@@ -82,7 +82,7 @@ class OpenLotto {
             });
             return ids[0];
         } catch (error) {
-            throw error;
+            throw new Error(this.lottery_db.interface.getError(error.data).name);
         }
     }
 

@@ -1,9 +1,5 @@
-import { ethers, Interface, keccak256 } from "ethers";
-
+import { ethers } from "ethers";
 import { OpenLotto, LotteryItem } from '../../src/bindings/OpenLotto.ts';
-import LotteryDatabaseArtifact from "../../out/LotteryDatabase.sol/LotteryDatabase.abi.json"
-import TicketDatabaseArtifact from "../../out/TicketDatabase.sol/TicketDatabase.abi.json"
-import DatabaseArtifact from "../../out/Database.sol/Database.json"
 
 const provider = new ethers.JsonRpcProvider("http://localhost:8545");
 const mnemonic = "test test test test test test test test test test test junk";
@@ -26,14 +22,50 @@ describe("OpenLotto", () => {
 
   });
 
-  test("CreateLottery", async () => {
-    let lottery;
-    let id;
- 
-    lottery = NewFilledLottery();
-    id = await openlotto.CreateLotteryAndWait(lottery);
-    expect(id).toEqual(1);    
+  test("CreateLottery should throw InvalidName when Name is empty", async () => {
+    let lottery = NewFilledLottery();
+    lottery.Name = "";
+    await expect(() => openlotto.CreateLotteryAndWait(lottery)).rejects.toThrow("InvalidName");
   })
+
+  test("CreateLottery should throw InvalidRoundsConfiguration when Rounds is 0", async () => {
+    let lottery = NewFilledLottery();
+    lottery.Rounds = 0;
+    await expect(() => openlotto.CreateLotteryAndWait(lottery)).rejects.toThrow("InvalidRoundsConfiguration");
+  })
+
+  test("CreateLottery should throw InvalidRoundsConfiguration when RoundBlocks is 0", async () => {
+    let lottery = NewFilledLottery();
+    lottery.RoundBlocks = 0;
+    await expect(() => openlotto.CreateLotteryAndWait(lottery)).rejects.toThrow("InvalidRoundsConfiguration");
+  })
+
+  test("CreateLottery should throw InvalidDistributionPool when DistributionPoolShare sume more than 100", async () => {
+    let lottery = NewFilledLottery();
+    lottery.DistributionPoolShare[0] = BigInt('1000000000000000001');
+    await expect(() => openlotto.CreateLotteryAndWait(lottery)).rejects.toThrow("InvalidDistributionPool");
+  })
+
+  test("CreateLottery should throw InvalidPrizePool when PrizePoolShare doesn't sume 100", async () => {
+    let lottery = NewFilledLottery();
+    lottery.PrizePoolShare[0] = BigInt('0');
+    await expect(() => openlotto.CreateLotteryAndWait(lottery)).rejects.toThrow("InvalidPrizePool");
+  })
+
+  test("CreateLottery should throw InvalidOperator when Operator is invalid", async () => {
+    let lottery = NewFilledLottery();
+    lottery.Operator = '0x0000000000000000000000000000000000000000'
+    await expect(() => openlotto.CreateLotteryAndWait(lottery)).rejects.toThrow("InvalidOperator");
+  })
+
+  test("CreateLottery should return incremental ids", async () => {
+    let lottery = NewFilledLottery();
+    let id = await openlotto.CreateLotteryAndWait(lottery);
+ 
+    expect(await openlotto.CreateLotteryAndWait(lottery)).toEqual(id + 1);
+    expect(await openlotto.CreateLotteryAndWait(lottery)).toEqual(id + 2);
+    expect(await openlotto.CreateLotteryAndWait(lottery)).toEqual(id + 3);
+  }, 30000)
 
   function NewFilledLottery(): LotteryItem {
     let lottery = openlotto.NewEmptyLottery();
