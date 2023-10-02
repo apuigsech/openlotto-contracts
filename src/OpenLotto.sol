@@ -43,6 +43,20 @@ contract OpenLotto is ERC721, AccessControl {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
+    function GetLotteryDatabaseAddr() 
+        public view
+        returns(address) 
+    {
+        return(address(lottery_db));
+    }
+
+    function GetTicketDatabaseAddr() 
+        public view
+        returns(address) 
+    {
+        return(address(ticket_db));
+    }
+
     function CreateLottery(LotteryModel.LotteryItem calldata lottery)
         public
         onlyRole(LOTTERY_MANAGER_ROLE)

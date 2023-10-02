@@ -2,7 +2,8 @@ import { Contract, ContractTransaction, TransactionResponse, ethers, Signer, Int
 import { LotteryItem, TicketItem, NewLottery } from "./models";
 
 import OpenLottoArtifact from "../../out/OpenLotto.sol/OpenLotto.abi.json"
-import DatabaseArtifact from "../../out/Database.sol/Database.abi.json"
+import LotteryDatabaseArtifact from "../../out/LotteryDatabase.sol/LotteryDatabase.abi.json"
+import TicketDatabaseArtifact from "../../out/TicketDatabase.sol/TicketDatabase.abi.json"
 
 function enableNoSuchMethod(obj) {
     return new Proxy(obj, {
@@ -26,8 +27,19 @@ function NewOpenLotto(address: string, signer: Signer) {
 class OpenLotto {
     contract: Contract;
 
+    lottery_db: Contract;
+    ticket_db: Contract;
+
     constructor(address: string, signer: Signer) {
         this.contract = new ethers.Contract(address, OpenLottoArtifact, signer);
+        this.initContracts();   
+    }
+
+    async initContracts() {
+        const lotteryDatabaseAddr = await this.contract.GetLotteryDatabaseAddr();
+        this.lottery_db = new ethers.Contract(lotteryDatabaseAddr, LotteryDatabaseArtifact);
+        const ticketDatabaseAddr = await this.contract.GetTicketDatabaseAddr();
+        this.ticket_db = new ethers.Contract(ticketDatabaseAddr, TicketDatabaseArtifact);        
     }
 
     __noSuchMethod__(methodName: string, args: any[]) {
@@ -44,11 +56,9 @@ class OpenLotto {
 
 
     public CreatedItem(tx: any): Promise<number> {
-        const iface = new Interface(DatabaseArtifact);
-        const createdItemEventSignature = iface.getEvent("CreatedItem");;
+        const iface = new Interface(LotteryDatabaseArtifact);
+        const createdItemEventSignature = iface.getEvent("CreatedItem");
         return tx.wait().then(receipt => {
-            console.log(">>>", receipt.logs);
-            console.log(createdItemEventSignature);
             const logs = receipt.logs?.filter(e => e.topics[0] === createdItemEventSignature);
             if (logs && logs.length > 0) {
                 return logs[0].topic[1];
@@ -60,16 +70,20 @@ class OpenLotto {
         });
     }
 
-    // public CreateLottery(lottery: LotteryItem): any {
-    //     return this.contract.CreateLottery(lottery);
-    // }
-
-    public CreateLotteryAndWait(lottery: LotteryItem): Promise<number> {
-        return this.contract.CreateLottery(lottery).then(tx => {
-            return this.CreatedItem(tx);
-        }).catch(error => {
+    public async CreateLotteryAndWait(lottery: LotteryItem): Promise<number> {
+        try {
+            const tx = await this.contract.CreateLottery(lottery);
+            const receipt = await tx.wait();
+            let ids = receipt.logs.map((log) => {
+                let event = this.lottery_db.interface.parseLog(log);
+                if (event.name == 'CreatedItem' && event.args[0] == 'Lottery') {
+                    return Number(event.args[1]);
+                }
+            });
+            return ids[0];
+        } catch (error) {
             throw error;
-        });
+        }
     }
 
     public async ReadLottery(id: number): Promise<LotteryItem> {
