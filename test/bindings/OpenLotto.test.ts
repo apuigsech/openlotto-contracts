@@ -1,4 +1,4 @@
-import { ethers } from "ethers";
+import { ethers, NonceManager } from "ethers";
 import { OpenLotto, LotteryItem } from '../../src/bindings/OpenLotto.ts';
 
 const provider = new ethers.JsonRpcProvider("http://localhost:8545");
@@ -8,14 +8,15 @@ const path = "m/44'/60'/0'/0/1";
 const wallet = ethers.HDNodeWallet.fromMnemonic(ethers.Mnemonic.fromPhrase(mnemonic), path);
 const signer = wallet.connect(provider);
 
+
 const openLottoAddress = '0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0';
 const dummyOperator = '0x8464135c8F25Da09e49BC8782676a84730C318bC';
 
-describe("OpenLotto", () => {
+describe("CreateLottery", () => {
   let openlotto;
 
   beforeAll(async () => {
-    openlotto = new OpenLotto(openLottoAddress, signer);
+    openlotto = await OpenLotto.new(openLottoAddress, signer);
   });
 
   beforeEach(async () => {
@@ -77,5 +78,48 @@ describe("OpenLotto", () => {
     lottery.Operator = dummyOperator;
     return lottery;
   }
-
 });
+
+describe("ReadLottery", () => {
+  let openlotto;
+  let id_1, id_2, id_3;
+
+  beforeAll(async () => {
+    openlotto = await OpenLotto.new(openLottoAddress, signer);
+    let lottery = NewFilledLottery();
+    lottery.Name = "dummy 1"
+    id_1 = await openlotto.CreateLotteryAndWait(lottery);
+    lottery.Name = "dummy 2"
+    id_2 = await openlotto.CreateLotteryAndWait(lottery);
+    lottery.Name = "dummy 3"
+    id_3 = await openlotto.CreateLotteryAndWait(lottery);
+  }, 30000);
+
+  beforeEach(async () => {
+
+  });
+
+  test("ReadLottery should throw InvalidID for an invalid id", async () => {
+    await expect(() => openlotto.ReadLottery(id_3 + 1)).rejects.toThrow("InvalidID");
+  })
+
+  test("ReadLottery should return the LotteryItem for a given id", async () => {
+    let lottery_1 = await openlotto.ReadLottery(id_1);
+    expect(lottery_1.Name).toEqual("dummy 1");
+    let lottery_2 = await openlotto.ReadLottery(id_2);
+    expect(lottery_2.Name).toEqual("dummy 2");
+    let lottery_3 = await openlotto.ReadLottery(id_3);
+    expect(lottery_3.Name).toEqual("dummy 3");
+  })
+
+  function NewFilledLottery(): LotteryItem {
+    let lottery = openlotto.NewEmptyLottery();
+    lottery.Name = 'dummy';
+    lottery.InitBlock = BigInt('10');
+    lottery.Rounds = 10;
+    lottery.RoundBlocks = 100;
+    lottery.PrizePoolShare[0] = BigInt('1000000000000000000');
+    lottery.Operator = dummyOperator;
+    return lottery;
+  }
+})

@@ -1,4 +1,4 @@
-import { Contract, ContractTransaction, TransactionResponse, ethers, Signer, Interface } from "ethers";
+import { Contract, ContractTransaction, TransactionResponse, ethers, Signer, Interface, Log } from "ethers";
 import { LotteryItem, TicketItem, NewLottery } from "./models";
 
 import OpenLottoArtifact from "../../out/OpenLotto.sol/OpenLotto.abi.json"
@@ -19,27 +19,30 @@ function enableNoSuchMethod(obj) {
     });
 }
 
-function NewOpenLotto(address: string, signer: Signer) {
-    let openlotto = new OpenLotto(address, signer);
-    return enableNoSuchMethod(openlotto);
-}
-
 class OpenLotto {
     contract: Contract;
 
     lottery_db: Contract;
     ticket_db: Contract;
 
-    constructor(address: string, signer: Signer) {
+    private constructor(address: string, signer: Signer) {
         this.contract = new ethers.Contract(address, OpenLottoArtifact, signer);
-        this.initContracts();   
+        this.initContracts().catch(error => {
+            throw new Error(`Failed to initialize contracts: ${error.message}`);
+        });   
     }
 
-    async initContracts() {
+    private async initContracts() {
         const lotteryDatabaseAddr = await this.contract.GetLotteryDatabaseAddr();
         this.lottery_db = new ethers.Contract(lotteryDatabaseAddr, LotteryDatabaseArtifact);
         const ticketDatabaseAddr = await this.contract.GetTicketDatabaseAddr();
         this.ticket_db = new ethers.Contract(ticketDatabaseAddr, TicketDatabaseArtifact);        
+    }
+
+    public static async new(address: string, signer: Signer): Promise<OpenLotto> {
+        const openlotto = new OpenLotto(address, signer);
+        await openlotto.initContracts();
+        return openlotto;
     }
 
     __noSuchMethod__(methodName: string, args: any[]) {
@@ -53,7 +56,6 @@ class OpenLotto {
     public NewEmptyLottery(): LotteryItem {
         return NewLottery.fromEmpty();
     }
-
 
     public CreatedItem(tx: any): Promise<number> {
         const iface = new Interface(LotteryDatabaseArtifact);
@@ -87,11 +89,12 @@ class OpenLotto {
     }
 
     public async ReadLottery(id: number): Promise<LotteryItem> {
-        return this.contract.ReadLottery(id).then(result => {
+        try {
+            const result = await this.contract.ReadLottery(id);
             return NewLottery.fromResult(result);
-        }).catch(error => {
-            throw error;
-        });
+        } catch (error) {
+            throw new Error(this.lottery_db.interface.getError(error.data).name);
+        }
     }
 
     public async BuyTicket(ticket: TicketItem, value: number): Promise<ContractTransaction> {
@@ -120,5 +123,5 @@ class OpenLotto {
 }
 
 export {
-    OpenLotto, LotteryItem, TicketItem, NewOpenLotto
+    OpenLotto, LotteryItem, TicketItem
 }
