@@ -5,20 +5,6 @@ import OpenLottoArtifact from "../../out/OpenLotto.sol/OpenLotto.abi.json"
 import LotteryDatabaseArtifact from "../../out/LotteryDatabase.sol/LotteryDatabase.abi.json"
 import TicketDatabaseArtifact from "../../out/TicketDatabase.sol/TicketDatabase.abi.json"
 
-function enableNoSuchMethod(obj) {
-    return new Proxy(obj, {
-        get(target, p) {
-            if (p in target) {
-                return target[p];
-            } else if (typeof target.__noSuchMethod__ == "function") {
-                return function(...args) {
-                    return target.__noSuchMethod__.call(target, p, args);
-                };
-            }
-        }
-    });
-}
-
 class OpenLotto {
     contract: Contract;
 
@@ -42,15 +28,15 @@ class OpenLotto {
     public static async new(address: string, signer: Signer): Promise<OpenLotto> {
         const openlotto = new OpenLotto(address, signer);
         await openlotto.initContracts();
-        return openlotto;
-    }
-
-    __noSuchMethod__(methodName: string, args: any[]) {
-        if (typeof this.contract[methodName] === 'function') {
-            return this.contract[methodName](...args);
-        } else {
-            throw new Error(`Method '${methodName}' not found on OpenLotto or Contract.`);
-        }
+        return new Proxy(openlotto, {
+            get(target, p) {
+                if (p in target) {
+                    return target[p]
+                } else {
+                    console.log("Forward Not Implemented yet:", typeof p, target[p]);
+                }
+            }
+        });
     }
 
     public NewEmptyLottery(): LotteryItem {
