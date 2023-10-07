@@ -140,4 +140,26 @@ class NewLotteryFactory {
 
 let NewLottery = new NewLotteryFactory();
 
-export { LotteryItem, TicketItem, NewLottery }
+class NewTicketFactory {
+    public fromEmpty(): TicketItem {
+        let ticket: TicketItem = {
+            LotteryID: 0,
+            LotteryRoundInit: BigInt('0'),
+            LotteryRoundFini: BigInt('0'),
+            NumBets: 0,
+            Attributes: '0x0000000000000000'
+        };
+
+        return ticket;
+    }
+
+    public fromResult(result): TicketItem {
+        let ticket = this.fromEmpty();
+        return ticket;
+    }
+
+}
+
+let NewTicket = new NewTicketFactory();
+
+export { LotteryItem, TicketItem, NewLottery, NewTicket }
