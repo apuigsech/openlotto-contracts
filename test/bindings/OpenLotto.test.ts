@@ -53,7 +53,7 @@ describe("CreateLottery", () => {
   beforeEach(async () => {
   });
 
-  test("CreateLottery should not be autorized for non lotery_managers", async () => {
+  test("CreateLottery should throw Unautorized for non lotery_managers", async () => {
     let lottery = NewFilledLottery();
     await expect(() => openlotto_user_1.CreateLotteryAndWait(lottery)).rejects.toThrow();
   })
@@ -153,7 +153,7 @@ describe("BuyTicket", () => {
 
   });
 
-  test("BuyTicket should throw InvalidName when LotteryID doesn't exist", async () => {
+  test("BuyTicket should throw InvalidID when LotteryID doesn't exist", async () => {
     let ticket = NewFilledTicket();
     ticket.LotteryID = 0;
     await expect(() => openlotto_user_1.BuyTicketAndWait(ticket, BigInt('10000000000000000'))).rejects.toThrow("InvalidID");
