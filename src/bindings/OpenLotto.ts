@@ -74,11 +74,15 @@ class OpenLotto {
             });
             return ids[0];
         } catch (e) {
-            let error =  this.getError(e.data);
-            if (error != null) {
-                throw new Error(error.name);
+            if (e.data) {
+                let error =  this.getError(e.data);
+                if (error != null) {
+                    throw new Error(error.name);
+                } else {
+                    throw new Error(e.data);
+                }   
             } else {
-                throw new Error(e.data);
+                throw new Error(e);
             }
         }
     }
@@ -88,11 +92,15 @@ class OpenLotto {
             const result = await this.contract.ReadLottery(id);
             return NewLottery.fromResult(result);
         } catch (e) {
-            let error =  this.getError(e.data);
-            if (error != null) {
-                throw new Error(error.name);
+            if (e.data) {
+                let error =  this.getError(e.data);
+                if (error != null) {
+                    throw new Error(error.name);
+                } else {
+                    throw new Error(e.data);
+                }   
             } else {
-                throw new Error(e.data);
+                throw new Error(e);
             }
         }
     }
@@ -113,12 +121,16 @@ class OpenLotto {
             }); 
             return ids[0];       
         } catch (e) {
-            let error =  this.getError(e.data);
-            if (error != null) {
-                throw new Error(error.name);
+            if (e.data) {
+                let error =  this.getError(e.data);
+                if (error != null) {
+                    throw new Error(error.name);
+                } else {
+                    throw new Error(e.data);
+                }   
             } else {
-                throw new Error(e.data);
-            }   
+                throw new Error(e);
+            }
         }
     }
 
