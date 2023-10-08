@@ -1,4 +1,4 @@
-import { Contract, ContractTransaction, TransactionResponse, ethers, Signer, Interface, Log, ErrorFragment } from "ethers";
+import { Contract, ContractTransaction, ethers, Signer, ErrorFragment, NonceManager } from "ethers";
 import { LotteryItem, TicketItem, NewLottery, NewTicket } from "./models";
 
 import OpenLottoArtifact from "../../out/OpenLotto.sol/OpenLotto.abi.json"
@@ -47,7 +47,7 @@ class OpenLotto {
         return NewTicket.fromEmpty();
     }
 
-    private getError(e): ErrorFragment {
+    private resolveError(e): ErrorFragment {
         const interfaces = [
             this.contract.interface,
             this.lottery_db.interface,
@@ -62,76 +62,67 @@ class OpenLotto {
         return null;
     }
 
-    public async CreateLotteryAndWait(lottery: LotteryItem): Promise<number> {
-        try {
-            const tx = await this.contract.CreateLottery(lottery);
-            const receipt = await tx.wait();
-            let ids = receipt.logs.map((log) => {
-                let event = this.lottery_db.interface.parseLog(log);
-                if (event && event.name == 'CreatedItem' && event.args[0] == 'Lottery') {
-                    return Number(event.args[1]);
-                }
+    public CreateLotteryAndWait(lottery: LotteryItem): Promise<number> {
+        return this.contract.CreateLottery(lottery).then((tx) => {
+            return tx.wait().then((receipt) => {
+                let ids = receipt.logs.map((log) => {
+                    let event = this.lottery_db.interface.parseLog(log);
+                    if (event && event.name == 'CreatedItem' && event.args[0] == 'Lottery') {
+                        return Number(event.args[1]);
+                    }
+                });
+                return ids[0];
+            }).catch((error) =>{
+                throw new Error('Error in wait: ' + error);
             });
-            return ids[0];
-        } catch (e) {
-            if (e.data) {
-                let error =  this.getError(e.data);
-                if (error != null) {
-                    throw new Error(error.name);
-                } else {
-                    throw new Error(e.data);
-                }   
+        }).catch((error) =>{
+            const openlotto_error = this.resolveError(error.data);
+            if (error != null) {
+                throw new Error(openlotto_error.name);
             } else {
-                throw new Error(e);
-            }
-        }
+                throw new Error(error.data);
+            }  
+        });
     }
 
-    public async ReadLottery(id: number): Promise<LotteryItem> {
-        try {
-            const result = await this.contract.ReadLottery(id);
+    public ReadLottery(id: number): Promise<LotteryItem> {
+        return this.contract.ReadLottery(id).then((result) => {
             return NewLottery.fromResult(result);
-        } catch (e) {
-            if (e.data) {
-                let error =  this.getError(e.data);
-                if (error != null) {
-                    throw new Error(error.name);
-                } else {
-                    throw new Error(e.data);
-                }   
+        }).catch((error) =>{
+            const openlotto_error = this.resolveError(error.data);
+            if (error != null) {
+                throw new Error(openlotto_error.name);
             } else {
-                throw new Error(e);
-            }
-        }
+                throw new Error(error.data);
+            }  
+        });
     }
 
-    public async BuyTicket(ticket: TicketItem, value: number): Promise<ContractTransaction> {
+    public BuyTicket(ticket: TicketItem, value: number): Promise<ContractTransaction> {
         return this.contract.BuyTicket(ticket, { value: value });
     }
 
-    public async BuyTicketAndWait(ticket: TicketItem, value: number): Promise<number> {
-        try {
-            const tx = await this.contract.BuyTicket(ticket, { value: value });
-            const receipt = await tx.wait();
-            let ids = receipt.logs.map((log) => {
-                let event = this.ticket_db.interface.parseLog(log);
-                if (event && event.name == 'CreatedItem' && event.args[0] == 'Ticket') {
-                    return Number(event.args[1]);
-                }
-            }); 
-            return ids[0];       
-        } catch (e) {
-            if (e.data) {
-                let error =  this.getError(e.data);
-                if (error != null) {
-                    throw new Error(error.name);
-                } else {
-                    throw new Error(e.data);
-                }   
+    public BuyTicketAndWait(ticket: TicketItem, value: number): Promise<number> {
+        return this.contract.BuyTicket(ticket, { value: value }).then((tx) => {
+            return tx.wait().then((receipt) => {
+                let ids = receipt.logs.map((log) => {
+                    let event = this.ticket_db.interface.parseLog(log);
+                    if (event && event.name == 'CreatedItem' && event.args[0] == 'Ticket') {
+                        return Number(event.args[1]);
+                    }
+                }); 
+                return ids[0]; 
+            }).catch((error) =>{
+                throw new Error('Error in wait: ' + error);
+            });
+        }).catch((error) =>{
+            const openlotto_error = this.resolveError(error.data);
+            if (error != null) {
+                throw new Error(openlotto_error.name);
             } else {
-                throw new Error(e);
-            }
-        }
+                throw new Error(error.data);
+            }  
+        });
     }
 
     public async ReadTicket(id: number): Promise<TicketItem> {
