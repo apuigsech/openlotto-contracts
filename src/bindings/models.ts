@@ -155,6 +155,11 @@ class NewTicketFactory {
 
     public fromResult(result): TicketItem {
         let ticket = this.fromEmpty();
+        ticket.LotteryID = result[0];
+        ticket.LotteryRoundInit = result[1];
+        ticket.LotteryRoundFini = result[2];
+        ticket.NumBets = result[3];
+        ticket.Attributes = result[4];
         return ticket;
     }
 

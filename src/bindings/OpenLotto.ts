@@ -12,17 +12,23 @@ class OpenLotto {
     ticket_db: Contract;
 
     private constructor(address: string, signer: Signer) {
-        this.contract = new ethers.Contract(address, OpenLottoArtifact, signer);
-        this.initContracts().catch(error => {
-            throw new Error(`Failed to initialize contracts: ${error.message}`);
-        });   
+        try {
+            this.contract = new ethers.Contract(address, OpenLottoArtifact, signer);
+            this.initContracts();
+        } catch (error) {
+            throw error;
+        }
     }
 
     private async initContracts() {
-        const lotteryDatabaseAddr = await this.contract.GetLotteryDatabaseAddr();
-        this.lottery_db = new ethers.Contract(lotteryDatabaseAddr, LotteryDatabaseArtifact);
-        const ticketDatabaseAddr = await this.contract.GetTicketDatabaseAddr();
-        this.ticket_db = new ethers.Contract(ticketDatabaseAddr, TicketDatabaseArtifact);        
+        try {
+            const lotteryDatabaseAddr = await this.contract.GetLotteryDatabaseAddr();
+            this.lottery_db = new ethers.Contract(lotteryDatabaseAddr, LotteryDatabaseArtifact);
+            const ticketDatabaseAddr = await this.contract.GetTicketDatabaseAddr();
+            this.ticket_db = new ethers.Contract(ticketDatabaseAddr, TicketDatabaseArtifact);
+        } catch {
+            throw new Error("cannot init contract");
+        }     
     }
 
     public static async new(address: string, signer: Signer): Promise<OpenLotto> {
@@ -96,7 +102,7 @@ class OpenLotto {
         return this.contract.BuyTicket(ticket, { value: value });
     }
 
-    public BuyTicketAndWait(ticket: TicketItem, value: number): Promise<number> {
+    public BuyTicketAndWait(ticket: TicketItem, value: bigint): Promise<number> {
         return this.contract.BuyTicket(ticket, { value: value }).then((tx) => {
             return tx.wait().then((receipt) => {
                 let ids = receipt.logs.map((log) => {
@@ -119,7 +125,11 @@ class OpenLotto {
     }
 
     public async ReadTicket(id: number): Promise<TicketItem> {
-        return this.contract.ReadTicket(id);
+        return this.contract.ReadTicket(id).then((result) => {
+            return NewTicket.fromResult(result);
+        }).catch((error) =>{
+            throw new Error(this.resolveError(error.data).name);
+        });
     }
 
     public async TicketPrizes(id: number, round: number): Promise<number> {
