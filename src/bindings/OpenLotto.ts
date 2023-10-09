@@ -76,12 +76,11 @@ class OpenLotto {
                 throw new Error('Error in wait: ' + error);
             });
         }).catch((error) =>{
-            const openlotto_error = this.resolveError(error.data);
-            if (error != null) {
-                throw new Error(openlotto_error.name);
+            if (error.info.error.code == 3) {
+                throw new Error(this.resolveError(error.data).name);
             } else {
-                throw new Error(error.data);
-            }  
+                throw new Error(error.info.error.message);
+            }
         });
     }
 
@@ -89,12 +88,7 @@ class OpenLotto {
         return this.contract.ReadLottery(id).then((result) => {
             return NewLottery.fromResult(result);
         }).catch((error) =>{
-            const openlotto_error = this.resolveError(error.data);
-            if (error != null) {
-                throw new Error(openlotto_error.name);
-            } else {
-                throw new Error(error.data);
-            }  
+            throw new Error(this.resolveError(error.data).name);
         });
     }
 
@@ -116,12 +110,11 @@ class OpenLotto {
                 throw new Error('Error in wait: ' + error);
             });
         }).catch((error) =>{
-            const openlotto_error = this.resolveError(error.data);
-            if (error != null) {
-                throw new Error(openlotto_error.name);
+            if (error.info.error.code == 3) {
+                throw new Error(this.resolveError(error.data).name);
             } else {
-                throw new Error(error.data);
-            }  
+                throw new Error(error.info.error.message);
+            }
         });
     }
 
