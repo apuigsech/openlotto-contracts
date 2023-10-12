@@ -2,7 +2,7 @@ import { ethers, JsonRpcProvider, NonceManager } from "ethers";
 import { OpenLotto, LotteryItem, TicketItem } from '../../src/bindings/OpenLotto.ts';
 
 import {
-  newFilledLottery, newFilledTicket, newTestJsonRpcProvider, newWallet, runForgeScript
+  newFilledLottery, newFilledTicket, TestProvider, newWallet
 } from './helpers.ts';
 
 const provider = new JsonRpcProvider("http://localhost:8545");
@@ -18,12 +18,13 @@ const dummyOperator = '0x8464135c8F25Da09e49BC8782676a84730C318bC';
 let main_provider;
 
 beforeAll(async () => {
-  main_provider = await newTestJsonRpcProvider(8545);
-  await runForgeScript(main_provider, 'script/DeployOpenLottoWithSampleData.s.sol:DeployOpenLotto', '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80')
+  main_provider = new TestProvider(8545)
+  await main_provider.wait();
+  await main_provider.runForgeScript('script/DeployOpenLottoWithSampleData.s.sol:DeployOpenLotto', '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80')
 }, 30000);
 
 afterAll(async () => {
-  main_provider['subprocess'].kill();
+  main_provider.exit();
 });
 
 
@@ -32,13 +33,14 @@ describe("CreateLottery", () => {
   let openlotto_manager, openlotto_user_1;
 
   beforeAll(async () => {
-    provider = await newTestJsonRpcProvider(undefined, main_provider._getConnection().url);
+    provider = new TestProvider(undefined, main_provider)
+    await provider.wait();
     openlotto_manager = await OpenLotto.new(openLottoAddress, newWallet(provider, mnemonic, LOTTERY_MANAGER_IDX));
     openlotto_user_1 = await OpenLotto.new(openLottoAddress, newWallet(provider, mnemonic, ALICE_IDX));
   });
 
   afterAll(async () => {
-    provider['subprocess'].kill();
+    provider.exit();
   });
 
 
@@ -104,7 +106,8 @@ describe("ReadLottery", () => {
   let openlotto_manager, openlotto_user_1;
 
   beforeAll(async () => {
-    provider = await newTestJsonRpcProvider(undefined, main_provider._getConnection().url);
+    provider = new TestProvider(undefined, main_provider)
+    await provider.wait();
     openlotto_manager = await OpenLotto.new(openLottoAddress, newWallet(provider, mnemonic, LOTTERY_MANAGER_IDX));
     openlotto_user_1 = await OpenLotto.new(openLottoAddress, newWallet(provider, mnemonic, ALICE_IDX));
 
@@ -118,7 +121,7 @@ describe("ReadLottery", () => {
   }, 30000);
 
   afterAll(async () => {
-    provider['subprocess'].kill();
+    provider.exit();
   });
 
   test("ReadLottery should throw InvalidID for an invalid id", async () => {
@@ -142,7 +145,8 @@ describe("BuyTicket", () => {
   let openlotto_manager, openlotto_user_1;
 
   beforeAll(async () => {
-    provider = await newTestJsonRpcProvider(undefined, main_provider._getConnection().url);
+    provider = new TestProvider(undefined, main_provider)
+    await provider.wait();
     openlotto_manager = await OpenLotto.new(openLottoAddress, newWallet(provider, mnemonic, LOTTERY_MANAGER_IDX));
     openlotto_user_1 = await OpenLotto.new(openLottoAddress, newWallet(provider, mnemonic, ALICE_IDX));
     
@@ -155,7 +159,7 @@ describe("BuyTicket", () => {
   });
 
   afterAll(async () => {
-    provider['subprocess'].kill();
+    provider.exit();
   });
 
   test("BuyTicket should throw InvalidID when LotteryID doesn't exist", async () => {
@@ -216,7 +220,8 @@ describe("ReadTicket", () => {
   let openlotto_manager, openlotto_user_1;
 
   beforeAll(async () => {
-    provider = await newTestJsonRpcProvider(undefined, main_provider._getConnection().url);
+    provider = new TestProvider(undefined, main_provider)
+    await provider.wait();
     openlotto_manager = await OpenLotto.new(openLottoAddress, newWallet(provider, mnemonic, LOTTERY_MANAGER_IDX));
     openlotto_user_1 = await OpenLotto.new(openLottoAddress, newWallet(provider, mnemonic, ALICE_IDX));
 
@@ -245,7 +250,7 @@ describe("ReadTicket", () => {
   }, 30000);
 
   afterAll(async () => {
-    provider['subprocess'].kill();
+    provider.exit();
   });
 
   test("ReadTicket should throw InvalidID for an invalid id", async () => {
@@ -254,7 +259,6 @@ describe("ReadTicket", () => {
 
   test("ReadTicket should return the TicketItem for a given id", async () => {
     let ticket_1 = await openlotto_user_1.ReadTicket(id_1);
-
     expect(ticket_1.LotteryRoundInit).toEqual(BigInt('1'));
     let ticket_2 = await openlotto_user_1.ReadTicket(id_2);
     expect(ticket_2.LotteryRoundInit).toEqual(BigInt('2'));

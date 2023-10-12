@@ -26,8 +26,8 @@ class OpenLotto {
             this.lottery_db = new ethers.Contract(lotteryDatabaseAddr, LotteryDatabaseArtifact);
             const ticketDatabaseAddr = await this.contract.GetTicketDatabaseAddr();
             this.ticket_db = new ethers.Contract(ticketDatabaseAddr, TicketDatabaseArtifact);
-        } catch {
-            throw new Error("cannot init contract");
+        } catch (error) {
+            throw error;
         }     
     }
 
@@ -39,7 +39,7 @@ class OpenLotto {
                 if (p in target) {
                     return target[p]
                 } else {
-                    console.log("Forward Not Implemented yet:", typeof p, target[p]);
+                    // console.log("Forward Not Implemented yet:", typeof p, target[p]);
                 }
             }
         });

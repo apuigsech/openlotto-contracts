@@ -24,41 +24,48 @@ function newFilledTicket(): TicketItem {
     return ticket;
 }
 
-async function newTestJsonRpcProvider(port?: number, forkUrl?: string): Promise<JsonRpcProvider> {
-    if (!port) {
-        port = Math.floor(Math.random() * 10000) + 10000;
+class TestProvider extends JsonRpcProvider {
+    constructor(port?: number, fork?: JsonRpcProvider) {
+        if (!port) {
+            port = Math.floor(Math.random() * 10000) + 10000;
+        }
+        super(`http://localhost:${port}`);
+        let cmd = `anvil --silent -p ${port}`;
+        if (fork) {
+            cmd += ` -f ${fork._getConnection().url}`;
+        }
+        this['subprocess'] = exec(cmd);
+        this['subprocess'].unref();
     }
-    let cmd = `anvil --silent -p ${port}`;
-    if (forkUrl) {
-        cmd += ` -f ${forkUrl}`;
-    }
-    const url = `http://localhost:${port}`
-    const provider = new JsonRpcProvider(url);
-    provider['subprocess'] = exec(cmd);
-    provider['subprocess'].unref();
-    while (true) {
-        try {
-            await provider.send('eth_chainId', []);
-            break;
-        } catch (error) {
-            continue;
+
+    async wait() {
+        while (true) {
+            try {
+                await this.send('eth_chainId', []);
+                break;
+            } catch (error) {
+                continue;
+            }
         }
     }
-    return provider;
-}
 
-async function runForgeScript(provider: JsonRpcProvider, script: string, privkey: string) {
-    const url = provider._getConnection().url;
-    const cmd = `forge script ${script} --rpc-url ${url} --private-key ${privkey} --broadcast`;
-    let process = exec(cmd, (error, stdout, stderr) => {
-        console.log(stdout);
-        console.log(stderr);
-    });
-    process.unref();
-    await new Promise((resolve, reject) => {
-        process.on('exit', resolve);
-        process.on('error', reject);
-    });
+    async exit() {
+        this['subprocess'].kill(9);
+    }
+
+    async runForgeScript(script: string, privkey: string) {
+        const url = this._getConnection().url;
+        const cmd = `forge script ${script} --rpc-url ${url} --private-key ${privkey} --broadcast`;
+        let process = exec(cmd, (error, stdout, stderr) => {
+            console.log(stdout);
+            console.log(stderr);
+        });
+        process.unref();
+        await new Promise((resolve, reject) => {
+            process.on('exit', resolve);
+            process.on('error', reject);
+        });
+    }
 }
 
 function newWallet(provider: JsonRpcProvider, mnemonic: string, index: number) { 
@@ -70,7 +77,6 @@ function newWallet(provider: JsonRpcProvider, mnemonic: string, index: number) {
 export {
     newFilledLottery,
     newFilledTicket,
-    newTestJsonRpcProvider,
-    runForgeScript,
+    TestProvider,
     newWallet
 };
