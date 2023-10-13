@@ -1,7 +1,8 @@
 import { JsonRpcProvider, HDNodeWallet, Mnemonic } from "ethers";
-import { exec } from "child_process";
+import { execSync, spawn } from "child_process";
 
 import { OpenLotto, LotteryItem, TicketItem } from '../../src/bindings/OpenLotto.ts';
+
 
 function newFilledLottery(operator): LotteryItem {
     let lottery = OpenLotto.NewEmptyLottery();
@@ -30,12 +31,11 @@ class TestProvider extends JsonRpcProvider {
             port = Math.floor(Math.random() * 10000) + 10000;
         }
         super(`http://localhost:${port}`);
-        let cmd = `anvil --silent -p ${port}`;
+        let args = ['--silent', '-p', `${port}`];
         if (fork) {
-            cmd += ` -f ${fork._getConnection().url}`;
+            args.push('-f', `${fork._getConnection().url}`);
         }
-        this['subprocess'] = exec(cmd);
-        this['subprocess'].unref();
+        this['subprocess'] = spawn('anvil', args);
     }
 
     async wait() {
@@ -50,21 +50,14 @@ class TestProvider extends JsonRpcProvider {
     }
 
     async exit() {
-        this['subprocess'].kill(9);
+        this['subprocess'].kill();
     }
+    
 
     async runForgeScript(script: string, privkey: string) {
         const url = this._getConnection().url;
         const cmd = `forge script ${script} --rpc-url ${url} --private-key ${privkey} --broadcast`;
-        let process = exec(cmd, (error, stdout, stderr) => {
-            console.log(stdout);
-            console.log(stderr);
-        });
-        process.unref();
-        await new Promise((resolve, reject) => {
-            process.on('exit', resolve);
-            process.on('error', reject);
-        });
+        execSync(cmd);
     }
 }
 
@@ -80,3 +73,4 @@ export {
     TestProvider,
     newWallet
 };
+

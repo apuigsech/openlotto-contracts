@@ -18,7 +18,7 @@ const dummyOperator = '0x8464135c8F25Da09e49BC8782676a84730C318bC';
 let main_provider;
 
 beforeAll(async () => {
-  main_provider = new TestProvider(8545)
+  main_provider = new TestProvider(8545);
   await main_provider.wait();
   await main_provider.runForgeScript('script/DeployOpenLottoWithSampleData.s.sol:DeployOpenLotto', '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80')
 }, 30000);
@@ -89,8 +89,11 @@ describe("CreateLottery", () => {
     let lottery = newFilledLottery(dummyOperator);
 
     let id = await openlotto_manager.CreateLotteryAndWait(lottery);
+    await new Promise(resolve => setTimeout(resolve, 2000));
     let id_1 = await openlotto_manager.CreateLotteryAndWait(lottery);
+    await new Promise(resolve => setTimeout(resolve, 2000));
     let id_2 = await openlotto_manager.CreateLotteryAndWait(lottery);
+    await new Promise(resolve => setTimeout(resolve, 2000));
     let id_3 = await openlotto_manager.CreateLotteryAndWait(lottery);
     
     expect(id_1).toEqual(id + 1);
@@ -114,8 +117,10 @@ describe("ReadLottery", () => {
     let lottery = newFilledLottery(dummyOperator);
     lottery.Name = "dummy 1"
     id_1 = await openlotto_manager.CreateLotteryAndWait(lottery);
+    await new Promise(resolve => setTimeout(resolve, 2000));
     lottery.Name = "dummy 2"
     id_2 = await openlotto_manager.CreateLotteryAndWait(lottery);
+    await new Promise(resolve => setTimeout(resolve, 2000));
     lottery.Name = "dummy 3"
     id_3 = await openlotto_manager.CreateLotteryAndWait(lottery);
   }, 30000);
@@ -202,8 +207,11 @@ describe("BuyTicket", () => {
     ticket.LotteryID = lottery_id;
 
     let id = await openlotto_user_1.BuyTicketAndWait(ticket, BigInt('10000000000000000'));
+    await new Promise(resolve => setTimeout(resolve, 2000));
     let id_1 = await openlotto_user_1.BuyTicketAndWait(ticket, BigInt('10000000000000000'));
+    await new Promise(resolve => setTimeout(resolve, 2000));
     let id_2 = await openlotto_user_1.BuyTicketAndWait(ticket, BigInt('10000000000000000'));
+    await new Promise(resolve => setTimeout(resolve, 2000));
     let id_3 = await openlotto_user_1.BuyTicketAndWait(ticket, BigInt('10000000000000000'));
 
     expect(id_1).toEqual(id + 1);
