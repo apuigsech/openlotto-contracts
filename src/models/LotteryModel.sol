@@ -170,7 +170,7 @@ library LotteryModel {
         }
         if (totalDistributed != ud(1e18)) revert InvalidPrizePool();
 
-        if (!Address.isContract(address(lottery.Operator))) revert InvalidOperator();
+        if (address(lottery.Operator).code.length == 0) revert InvalidOperator();
     }
 
     /// @dev Function to validate whether a ticket item is compatible for a specific lottery item.
