@@ -51,3 +51,28 @@ jobs:
           forge build --extra-output-files abi
           npm install
           npm test
+  release-bindings:
+    name: Release Bindings
+    needs: [test-bindings]
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 20
+      - name: build
+        run: |
+          forge build --extra-output-files abi
+          npm install
+          npm pack
+      - uses: softprops/action-gh-release@v1
+        with:
+          files: openlotto-bindings-*.tgz
