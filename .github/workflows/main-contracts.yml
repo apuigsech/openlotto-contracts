@@ -1,0 +1,32 @@
+name: Main Contracts
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  lint-contracts:
+    name: Lint Contracts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 20
+      - run: |
+          npm install -g solhint
+          solhint -f table src/**/*.sol
+  test-contracts:
+    name: Test Contracts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+      - name: build
+        run: forge build
+      - name: test
+        run: forge test -vvv
