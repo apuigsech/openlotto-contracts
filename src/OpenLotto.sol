@@ -3,13 +3,15 @@ pragma solidity ^0.8.19;
 
 import "@openzeppelin/token/ERC721/ERC721.sol";
 import "@openzeppelin/access/AccessControl.sol";
+import "@openzeppelin/utils/ReentrancyGuard.sol";
+
 
 import "@models/LotteryModel.sol";
 import "@models/TicketModel.sol";
 import "@database/LotteryDatabase.sol";
 import "@database/TicketDatabase.sol";
 
-contract OpenLotto is ERC721, AccessControl {
+contract OpenLotto is ERC721, AccessControl, ReentrancyGuard {
     using LotteryModel for LotteryModel.LotteryItem;
     using TicketModel for TicketModel.TicketItem;
 
@@ -71,7 +73,7 @@ contract OpenLotto is ERC721, AccessControl {
         return lottery_db.Read(id);
     }
 
-    function BuyTicket(TicketModel.TicketItem calldata ticket) public payable returns (uint32 id) {
+    function BuyTicket(TicketModel.TicketItem calldata ticket) public payable nonReentrant() returns (uint32 id) {
         ticket.isValid();
         LotteryModel.LotteryItem memory lottery = lottery_db.Read(ticket.LotteryID);
         lottery.isValidTicket(ticket);
@@ -124,7 +126,7 @@ contract OpenLotto is ERC721, AccessControl {
         return lottery.Operator.TicketPrizes(ticket.LotteryID, lottery, id, ticket, round);
     }
 
-    function WithdrawTicket(uint32 id, uint32 round) public {
+    function WithdrawTicket(uint32 id, uint32 round) public nonReentrant() {
         if ((TicketState[id][round] & STATE_CLAIMED) == 0) revert TicketNotClaimed();
         if ((TicketState[id][round] & STATE_WITHDRAWN) != 0) revert TicketAlreadyWithdrawn();
 
