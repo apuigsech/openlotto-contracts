@@ -25,16 +25,16 @@ contract OpenLotto is ERC721, AccessControl {
 
     bytes32 public constant LOTTERY_MANAGER_ROLE = keccak256("LOTTERY_MANAGER_ROLE");
 
-    LotteryDatabase lottery_db;
-    TicketDatabase ticket_db;
+    LotteryDatabase private lottery_db;
+    TicketDatabase private ticket_db;
 
     mapping(uint32 => uint256) public Reserve;
     mapping(uint32 => mapping(uint32 => uint256)) public RoundJackpot;
     mapping(uint32 => mapping(uint32 => uint8)) public TicketState; // Bitmap to define the state of the ticket. (0:
         // Claimed 1: Withdrawn, ...)
 
-    uint8 constant STATE_CLAIMED = 1;
-    uint8 constant STATE_WITHDRAWN = 2;
+    uint8 constant private STATE_CLAIMED = 1;
+    uint8 constant private STATE_WITHDRAWN = 2;
 
     constructor(LotteryDatabase _lottery_db, TicketDatabase _ticket_db) ERC721("OpenLottoTicket", "LOTTO") {
         lottery_db = _lottery_db;

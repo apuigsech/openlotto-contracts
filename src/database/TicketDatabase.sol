@@ -11,7 +11,7 @@ import "@models/TicketModel.sol";
 contract TicketDatabase is Database {
     using TicketModelStorage for TicketModelStorage.TicketStorage;
 
-    TicketModelStorage.TicketStorage data;
+    TicketModelStorage.TicketStorage private data;
 
     constructor() Database("Ticket") { }
 

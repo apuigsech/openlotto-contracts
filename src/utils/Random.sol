@@ -47,7 +47,7 @@ library Random {
  * To be able to retrieve previously used seeds after blockhash is not accesible.
  */
 contract RandomCachedSeed {
-    mapping(uint256 => bytes32) CachedSeeds;
+    mapping(uint256 => bytes32) private CachedSeeds;
 
     /**
      * @dev Retrieves a cached seed for a given block number.

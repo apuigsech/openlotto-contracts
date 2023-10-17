@@ -11,7 +11,7 @@ import "@models/LotteryModel.sol";
 contract LotteryDatabase is DatabaseEnumerable {
     using LotteryModelStorage for LotteryModelStorage.LotteryStorage;
 
-    LotteryModelStorage.LotteryStorage data;
+    LotteryModelStorage.LotteryStorage private data;
 
     constructor() DatabaseEnumerable("Lottery") { }
 
