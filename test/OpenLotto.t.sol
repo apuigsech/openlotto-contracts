@@ -146,6 +146,16 @@ contract testOpenLotto is Test {
         assertEq(openlotto.CreateLottery(lottery), 3);
 
         vm.stopPrank();
+
+        uint32 id;
+
+        hoax(lottery_manager_role);
+        id = openlotto.CreateLottery(lottery);
+        assertEq(openlotto.Reserve(id), 0 ether);
+
+        hoax(lottery_manager_role);
+        id = openlotto.CreateLottery{value: 1 ether}(lottery);
+        assertEq(openlotto.Reserve(id), 1 ether);
     }
 
     function testReadLottery() public {

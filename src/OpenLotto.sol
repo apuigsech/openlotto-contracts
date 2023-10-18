@@ -60,13 +60,14 @@ contract OpenLotto is ERC721, AccessControl, ReentrancyGuard {
     }
 
     function CreateLottery(LotteryModel.LotteryItem calldata lottery)
-        public
+        public payable
         onlyRole(LOTTERY_MANAGER_ROLE)
         returns (uint32 id)
     {
         lottery.isValid();
         id = lottery_db.Create(lottery);
         lottery.Operator.CreateLottery(id, lottery);
+        Reserve[id] = msg.value;
     }
 
     function ReadLottery(uint32 id) public view returns (LotteryModel.LotteryItem memory lottery) {
