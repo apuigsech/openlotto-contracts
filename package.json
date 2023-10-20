@@ -1,6 +1,6 @@
 {
-  "name": "openlotto-bindings",
-  "version": "0.1.0-alpha-1",
+  "name": "@apuigsech/openlotto-bindings",
+  "version": "0.1.0-alpha-2",
   "devDependencies": {
     "@babel/core": "^7.22.11",
     "@babel/preset-typescript": "^7.22.11",
@@ -15,5 +15,9 @@
   },
   "dependencies": {
     "ethers": "^6.7.1"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
   }
 }
+

@@ -31,6 +31,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      packages: write
     steps:
       - uses: actions/checkout@v4
         with:
@@ -41,11 +42,19 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 20
+          registry-url: 'https://npm.pkg.github.com'
       - name: build
         run: |
           forge build --extra-output-files abi
           npm install
           npm pack
-      - uses: softprops/action-gh-release@v1
+      - name: release
+        uses: softprops/action-gh-release@v1
         with:
           files: openlotto-bindings-*.tgz
+      - name: publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          npm publish
+        

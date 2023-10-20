@@ -1,0 +1,5 @@
+*
+
+!src/**/*.ts
+!out/OpenLotto.sol/OpenLotto.json
+!out/Database.sol/Database.json
