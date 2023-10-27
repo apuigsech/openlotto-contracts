@@ -53,4 +53,26 @@ contract LotteryDatabase is DatabaseEnumerable {
         _delete(id);
         data.unset(id);
     }
+
+    bytes32 public constant STATE_ROLE = keccak256("STATE_ROLE");
+
+    function GetReserve(uint32 id)
+        external
+        view
+        returns (uint256 reserve)
+    {
+        reserve = data.LotteryStateMap[id].Reserve;
+    }     
+
+    function SetReserve(uint32 id, uint256 amount) external onlyRole(STATE_ROLE) {
+        data.LotteryStateMap[id].Reserve = amount;
+    } 
+
+    function IncReserve(uint32 id, uint256 amount) external onlyRole(STATE_ROLE) {
+        data.LotteryStateMap[id].Reserve += amount;
+    }
+
+    function DecReserve(uint32 id, uint256 amount) external onlyRole(STATE_ROLE) {
+        data.LotteryStateMap[id].Reserve -= amount;
+    }
 }

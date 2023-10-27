@@ -5,7 +5,7 @@ import "forge-std/Test.sol";
 
 import "@test/helpers/ModelsHelpers.sol";
 import "@test/helpers/RevertDataHelpers.sol";
-import "@test/helpers/Deployments.sol";
+import "@src/utils/Deployments.sol";
 
 import "@src/OpenLotto.sol";
 
@@ -148,7 +148,7 @@ contract testOpenLotto is Test {
         vm.stopPrank();
     }
 
-    function testReserve() public {
+    function testGetReserve() public {
         LotteryModel.LotteryItem memory lottery;
         uint32 id;
 
@@ -156,16 +156,16 @@ contract testOpenLotto is Test {
 
         hoax(lottery_manager_role);
         id = openlotto.CreateLottery(lottery);
-        assertEq(openlotto.Reserve(id), 0 ether);
+        assertEq(openlotto.GetReserve(id), 0 ether);
 
         hoax(lottery_manager_role);
         id = openlotto.CreateLottery{value: 100 ether}(lottery);
-        assertEq(openlotto.Reserve(id), 100 ether);
+        assertEq(openlotto.GetReserve(id), 100 ether);
         assertEq(address(openlotto).balance, 100 ether);
 
         hoax(lottery_manager_role);
         id = openlotto.CreateLottery{value: 50 ether}(lottery);
-        assertEq(openlotto.Reserve(id), 50 ether);
+        assertEq(openlotto.GetReserve(id), 50 ether);
         assertEq(address(openlotto).balance, 150 ether);
     }
 
@@ -324,7 +324,7 @@ contract testOpenLotto is Test {
         assertEq(distribution_pool[0].balance, 0.1 ether);
         assertEq(distribution_pool[1].balance, 0.075 ether);
         assertEq(distribution_pool[2].balance, 0.05 ether);
-        assertEq(openlotto.Reserve(lottery_id), 0.025 ether);
+        assertEq(openlotto.GetReserve(lottery_id), 0.025 ether);
 
         ticket = ModelsHelpers.newFilledTicket();
         ticket.LotteryID = lottery_id;
@@ -333,7 +333,7 @@ contract testOpenLotto is Test {
         assertEq(distribution_pool[0].balance, 0.2 ether);
         assertEq(distribution_pool[1].balance, 0.15 ether);
         assertEq(distribution_pool[2].balance, 0.1 ether);
-        assertEq(openlotto.Reserve(lottery_id), 0.05 ether);
+        assertEq(openlotto.GetReserve(lottery_id), 0.05 ether);
     }
 
     function testRoundJackpots() public {

@@ -143,6 +143,11 @@ library LotteryModel {
         bytes16 Attributes; // Attributes for the operator.
     }
 
+    struct LotteryState {
+        uint256 Reserve;
+        mapping(uint32 => uint256) RoundJackpot;
+    }
+
     function MAX_DISTRIBUTIONPOOL() internal pure returns (uint8) {
         return _MAX_DISTRIBUTIONPOOL;
     }
@@ -241,6 +246,7 @@ library LotteryModelStorage {
     /// @dev Data structure to store multiple lottery items.
     struct LotteryStorage {
         mapping(uint32 => LotteryModel.LotteryItem) LotteryMap;
+        mapping(uint32 => LotteryModel.LotteryState) LotteryStateMap;
     }
 
     /// @dev Function to set (update/create) a lottery item in the storage.

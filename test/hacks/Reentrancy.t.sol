@@ -5,7 +5,7 @@ import "forge-std/Test.sol";
 
 import "@test/helpers/ModelsHelpers.sol";
 import "@test/helpers/RevertDataHelpers.sol";
-import "@test/helpers/Deployments.sol";
+import "@src/utils/Deployments.sol";
 
 import "@src/OpenLotto.sol";
 

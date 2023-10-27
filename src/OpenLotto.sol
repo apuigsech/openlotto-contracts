@@ -30,10 +30,8 @@ contract OpenLotto is ERC721, AccessControl, ReentrancyGuard {
     LotteryDatabase private lottery_db;
     TicketDatabase private ticket_db;
 
-    mapping(uint32 => uint256) public Reserve;
     mapping(uint32 => mapping(uint32 => uint256)) public RoundJackpot;
-    mapping(uint32 => mapping(uint32 => uint8)) public TicketState; // Bitmap to define the state of the ticket. (0:
-        // Claimed 1: Withdrawn, ...)
+    mapping(uint32 => mapping(uint32 => uint8)) public TicketState; // Bitmap to define the state of the ticket. (0: Claimed 1: Withdrawn, ...)
 
     uint8 constant private STATE_CLAIMED = 1;
     uint8 constant private STATE_WITHDRAWN = 2;
@@ -67,7 +65,7 @@ contract OpenLotto is ERC721, AccessControl, ReentrancyGuard {
         lottery.isValid();
         id = lottery_db.Create(lottery);
         lottery.Operator.CreateLottery(id, lottery);
-        Reserve[id] = msg.value;
+        lottery_db.SetReserve(id, msg.value);
     }
 
     function ReadLottery(uint32 id) public view returns (LotteryModel.LotteryItem memory lottery) {
@@ -100,7 +98,7 @@ contract OpenLotto is ERC721, AccessControl, ReentrancyGuard {
                 (bool sent,) = payable(lottery.DistributionPoolTo[i]).call{ value: distributeValue.unwrap() }("");
                 if (!sent) revert DistributionFailed();
             } else {
-                Reserve[ticket.LotteryID] += distributeValue.unwrap();
+                lottery_db.IncReserve(ticket.LotteryID, distributeValue.unwrap());
             }
         }
 
@@ -150,6 +148,10 @@ contract OpenLotto is ERC721, AccessControl, ReentrancyGuard {
         TicketState[id][round] = TicketState[id][round] | STATE_WITHDRAWN;
 
         payable(ownerOf(id)).call{ value: withdrawAmount }("");
+    }
+
+    function GetReserve(uint32 id) public view returns(uint256) {
+        return lottery_db.GetReserve(id);
     }
 
     function supportsInterface(bytes4 interfaceId) public view virtual override(ERC721, AccessControl) returns (bool) {
