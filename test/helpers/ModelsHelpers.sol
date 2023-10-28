@@ -9,19 +9,8 @@ import "@models/LotteryModel.sol";
 import "@models/TicketModel.sol";
 import "@src/operators/BaseLotteryOperator.sol";
 
-contract DummyLotteryOperator is BaseLotteryOperator {
-    bool public AuthorizationEnabled = false;
+import "@test/helpers/TestLotteryOperator.sol";
 
-    function testEnableAuthorization() public {
-        AuthorizationEnabled = true;
-    }
-
-    function _checkRole(bytes32 role, address account) internal view override {
-        if (AuthorizationEnabled) {
-            super._checkRole(role, account);
-        }
-    }
-}
 
 library ModelsHelpers {
     function newFilledLottery() internal returns (LotteryModel.LotteryItem memory lottery) {
