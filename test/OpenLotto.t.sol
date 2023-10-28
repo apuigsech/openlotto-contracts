@@ -318,7 +318,7 @@ contract testOpenLotto is Test {
         ticket.LotteryRoundFini = 1;
         openlotto.BuyTicket{ value: 1 ether }(ticket);
 
-        assertEq(openlotto.RoundJackpot(lottery_id, 1), 0.75 ether);
+        assertEq(openlotto.GetRoundJackpot(lottery_id, 1), 0.75 ether);
 
         ticket = ModelsHelpers.newFilledTicket();
         ticket.LotteryID = lottery_id;
@@ -326,11 +326,11 @@ contract testOpenLotto is Test {
         ticket.LotteryRoundFini = 5;
         openlotto.BuyTicket{ value: 5 ether }(ticket);
 
-        assertEq(openlotto.RoundJackpot(lottery_id, 1), 1.5 ether);
-        assertEq(openlotto.RoundJackpot(lottery_id, 2), 0.75 ether);
-        assertEq(openlotto.RoundJackpot(lottery_id, 3), 0.75 ether);
-        assertEq(openlotto.RoundJackpot(lottery_id, 4), 0.75 ether);
-        assertEq(openlotto.RoundJackpot(lottery_id, 5), 0.75 ether);
+        assertEq(openlotto.GetRoundJackpot(lottery_id, 1), 1.5 ether);
+        assertEq(openlotto.GetRoundJackpot(lottery_id, 2), 0.75 ether);
+        assertEq(openlotto.GetRoundJackpot(lottery_id, 3), 0.75 ether);
+        assertEq(openlotto.GetRoundJackpot(lottery_id, 4), 0.75 ether);
+        assertEq(openlotto.GetRoundJackpot(lottery_id, 5), 0.75 ether);
 
         ticket = ModelsHelpers.newFilledTicket();
         ticket.LotteryID = lottery_id;
@@ -338,16 +338,16 @@ contract testOpenLotto is Test {
         ticket.LotteryRoundFini = 10;
         openlotto.BuyTicket{ value: 10 ether }(ticket);
 
-        assertEq(openlotto.RoundJackpot(lottery_id, 1), 2.25 ether);
-        assertEq(openlotto.RoundJackpot(lottery_id, 2), 1.5 ether);
-        assertEq(openlotto.RoundJackpot(lottery_id, 3), 1.5 ether);
-        assertEq(openlotto.RoundJackpot(lottery_id, 4), 1.5 ether);
-        assertEq(openlotto.RoundJackpot(lottery_id, 5), 1.5 ether);
-        assertEq(openlotto.RoundJackpot(lottery_id, 6), 0.75 ether);
-        assertEq(openlotto.RoundJackpot(lottery_id, 7), 0.75 ether);
-        assertEq(openlotto.RoundJackpot(lottery_id, 8), 0.75 ether);
-        assertEq(openlotto.RoundJackpot(lottery_id, 9), 0.75 ether);
-        assertEq(openlotto.RoundJackpot(lottery_id, 10), 0.75 ether);
+        assertEq(openlotto.GetRoundJackpot(lottery_id, 1), 2.25 ether);
+        assertEq(openlotto.GetRoundJackpot(lottery_id, 2), 1.5 ether);
+        assertEq(openlotto.GetRoundJackpot(lottery_id, 3), 1.5 ether);
+        assertEq(openlotto.GetRoundJackpot(lottery_id, 4), 1.5 ether);
+        assertEq(openlotto.GetRoundJackpot(lottery_id, 5), 1.5 ether);
+        assertEq(openlotto.GetRoundJackpot(lottery_id, 6), 0.75 ether);
+        assertEq(openlotto.GetRoundJackpot(lottery_id, 7), 0.75 ether);
+        assertEq(openlotto.GetRoundJackpot(lottery_id, 8), 0.75 ether);
+        assertEq(openlotto.GetRoundJackpot(lottery_id, 9), 0.75 ether);
+        assertEq(openlotto.GetRoundJackpot(lottery_id, 10), 0.75 ether);
     }
 
     function testWithdrawTicket() public {

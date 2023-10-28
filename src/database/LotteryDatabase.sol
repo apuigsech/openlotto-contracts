@@ -75,4 +75,24 @@ contract LotteryDatabase is DatabaseEnumerable {
     function DecReserve(uint32 id, uint256 amount) external onlyRole(STATE_ROLE) {
         data.LotteryStateMap[id].Reserve -= amount;
     }
+
+    function GetRoundJackpot(uint32 id, uint32 round)
+        external
+        view
+        returns (uint256 jackpot)
+    {
+        jackpot = data.LotteryStateMap[id].RoundJackpot[round];
+    }
+
+    function SetRoundJackpot(uint32 id, uint32 round, uint256 amount) external onlyRole(STATE_ROLE) {
+        data.LotteryStateMap[id].RoundJackpot[round] = amount;
+    } 
+
+    function IncRoundJackpot(uint32 id, uint32 round, uint256 amount) external onlyRole(STATE_ROLE) {
+        data.LotteryStateMap[id].RoundJackpot[round] += amount;
+    }
+
+    function DecRoundJackpot(uint32 id, uint32 round, uint256 amount) external onlyRole(STATE_ROLE) {
+        data.LotteryStateMap[id].RoundJackpot[round] -= amount;
+    }
 }

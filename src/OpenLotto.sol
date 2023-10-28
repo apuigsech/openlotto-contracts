@@ -107,7 +107,7 @@ contract OpenLotto is ERC721, AccessControl, ReentrancyGuard {
 
         uint256 valuePerRound = remainingValue.unwrap() / roundsCount;
         for (uint32 round = ticket.LotteryRoundInit; round <= ticket.LotteryRoundFini; round++) {
-            RoundJackpot[ticket.LotteryID][round] += valuePerRound;
+            lottery_db.IncRoundJackpot(ticket.LotteryID, round, valuePerRound);
             TicketState[id][round] = lottery.Operator.InitialTicketState();
         }
 
@@ -139,19 +139,23 @@ contract OpenLotto is ERC721, AccessControl, ReentrancyGuard {
         for (uint32 i = 0; i < winnersCount.length; i++) {
             if (winnersCount[i] > 0) {
                 if ((ticketPrizes & uint32(1 << i)) != 0) {
-                    withdrawAmount = withdrawAmount
-                        + (ud(RoundJackpot[ticket.LotteryID][round]) * lottery.PrizePoolShare[i]).unwrap() / winnersCount[i];
+                    withdrawAmount = withdrawAmount + (ud(lottery_db.GetRoundJackpot(ticket.LotteryID, round)) * lottery.PrizePoolShare[i]).unwrap() / winnersCount[i];
                 }
             }
         }
 
         TicketState[id][round] = TicketState[id][round] | STATE_WITHDRAWN;
 
+        // lottery_db.DecReserve(ticket.LotteryID, withdrawAmount);
         payable(ownerOf(id)).call{ value: withdrawAmount }("");
     }
 
     function GetReserve(uint32 id) public view returns(uint256) {
         return lottery_db.GetReserve(id);
+    }
+
+    function GetRoundJackpot(uint32 id, uint32 round) public view returns(uint256) {
+        return lottery_db.GetRoundJackpot(id, round);
     }
 
     function supportsInterface(bytes4 interfaceId) public view virtual override(ERC721, AccessControl) returns (bool) {
