@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
+import "forge-std/Test.sol";
+
 import "@openzeppelin/token/ERC721/ERC721.sol";
 import "@openzeppelin/access/AccessControl.sol";
 import "@openzeppelin/utils/ReentrancyGuard.sol";
-
 
 import "@models/LotteryModel.sol";
 import "@models/TicketModel.sol";
@@ -29,12 +30,6 @@ contract OpenLotto is ERC721, AccessControl, ReentrancyGuard {
 
     LotteryDatabase private lottery_db;
     TicketDatabase private ticket_db;
-
-    mapping(uint32 => mapping(uint32 => uint256)) public RoundJackpot;
-    mapping(uint32 => mapping(uint32 => uint8)) public TicketState; // Bitmap to define the state of the ticket. (0: Claimed 1: Withdrawn, ...)
-
-    uint8 constant private STATE_CLAIMED = 1;
-    uint8 constant private STATE_WITHDRAWN = 2;
 
     constructor(LotteryDatabase _lottery_db, TicketDatabase _ticket_db) ERC721("OpenLottoTicket", "LOTTO") {
         lottery_db = _lottery_db;
@@ -108,7 +103,7 @@ contract OpenLotto is ERC721, AccessControl, ReentrancyGuard {
         uint256 valuePerRound = remainingValue.unwrap() / roundsCount;
         for (uint32 round = ticket.LotteryRoundInit; round <= ticket.LotteryRoundFini; round++) {
             lottery_db.IncRoundJackpot(ticket.LotteryID, round, valuePerRound);
-            TicketState[id][round] = lottery.Operator.InitialTicketState();
+            ticket_db.SetRoundFlags(id, round, lottery.Operator.InitialTicketFlags(), true);
         }
 
         _mint(msg.sender, id);
@@ -126,8 +121,8 @@ contract OpenLotto is ERC721, AccessControl, ReentrancyGuard {
     }
 
     function WithdrawTicket(uint32 id, uint32 round) public nonReentrant() {
-        if ((TicketState[id][round] & STATE_CLAIMED) == 0) revert TicketNotClaimed();
-        if ((TicketState[id][round] & STATE_WITHDRAWN) != 0) revert TicketAlreadyWithdrawn();
+        if (!ticket_db.HasRoundFlags(id, round, TicketModel.FLAG_CLAIMED)) revert TicketNotClaimed();
+        if (ticket_db.HasRoundFlags(id, round, TicketModel.FLAG_WITHDRAWN)) revert TicketAlreadyWithdrawn();
 
         TicketModel.TicketItem memory ticket = ticket_db.Read(id);
         LotteryModel.LotteryItem memory lottery = lottery_db.Read(ticket.LotteryID);
@@ -144,7 +139,7 @@ contract OpenLotto is ERC721, AccessControl, ReentrancyGuard {
             }
         }
 
-        TicketState[id][round] = TicketState[id][round] | STATE_WITHDRAWN;
+        ticket_db.SetRoundFlags(id, round, TicketModel.FLAG_WITHDRAWN, false);
 
         // lottery_db.DecReserve(ticket.LotteryID, withdrawAmount);
         payable(ownerOf(id)).call{ value: withdrawAmount }("");

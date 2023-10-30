@@ -13,8 +13,16 @@ library TicketModel {
         uint32 LotteryID; // Reference identifier of the lottery associated with the ticket.
         uint32 LotteryRoundInit; // Starting round of the lottery for which the ticket is playing.
         uint32 LotteryRoundFini; // Ending round of the lottery for which the ticket is playing.
-        uint8 NumBets; // Number of bets the ticket is processing (typicaly 1). The ticket cost and prize is affected by this value.
+        uint8 NumBets; // Number of bets the ticket is processing (typically 1). The ticket cost and prize are affected by this value.
         bytes8 Attributes;
+    }
+
+    uint8 constant public FLAG_NONE = 0;
+    uint8 constant public FLAG_CLAIMED = 1;
+    uint8 constant public FLAG_WITHDRAWN = 2;
+
+    struct TicketState {
+        mapping(uint32 => uint8) RoundFlags;
     }
 
     /// @dev Function to validate whether a ticket item is valid (has valid round configuration).
@@ -43,6 +51,7 @@ library TicketModelStorage {
     /// @dev Data structure to store multiple ticket items.
     struct TicketStorage {
         mapping(uint32 => TicketModel.TicketItem) TicketMap;
+        mapping(uint32 => TicketModel.TicketState) TicketStateMap;
     }
 
     /// @dev Function to set (update/create) a ticket item in the storage.
@@ -87,3 +96,4 @@ library TicketModelStorage {
         _;
     }
 }
+

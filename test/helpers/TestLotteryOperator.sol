@@ -27,7 +27,7 @@ contract TestLotteryOperator is DummyLotteryOperator {
     mapping(uint32 => uint32[]) WinnersCountTestData;
 
     constructor() DummyLotteryOperator() {
-        InitialTicketState = 1; // STATE_CLAIMED
+        InitialTicketFlags = TicketModel.FLAG_CLAIMED;
     }
 
     function _setTicketPrizesTestData(uint32 ticket_id, uint32 round, uint32 data) public {

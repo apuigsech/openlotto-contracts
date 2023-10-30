@@ -34,4 +34,26 @@ contract TicketDatabase is Database {
         _read(id);
         ticket = data.get(id);
     }
+
+    bytes32 public constant STATE_ROLE = keccak256("STATE_ROLE");
+
+    function GetRoundFlags(uint32 id, uint32 round)
+        external
+        view
+        returns (uint8 flags)
+    {
+        flags = data.TicketStateMap[id].RoundFlags[round];
+    }   
+
+    function HasRoundFlags(uint32 id, uint32 round, uint8 flags) external returns(bool) {
+        return (data.TicketStateMap[id].RoundFlags[round] & flags) == flags;
+    }   
+
+    function SetRoundFlags(uint32 id, uint32 round, uint8 flags, bool fullSet) external onlyRole(STATE_ROLE) {
+        if (fullSet) {
+            data.TicketStateMap[id].RoundFlags[round] = flags;
+        } else {
+            data.TicketStateMap[id].RoundFlags[round] |= flags;
+        }
+    }
 }

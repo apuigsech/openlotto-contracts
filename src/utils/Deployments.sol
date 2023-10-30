@@ -24,6 +24,7 @@ library Deployments {
         lottery_db.grantRole(lottery_db.STATE_ROLE(), address(openlotto));
         ticket_db.grantRole(ticket_db.CREATE_ROLE(), address(openlotto));
         ticket_db.grantRole(ticket_db.READ_ROLE(), address(openlotto));
+        ticket_db.grantRole(lottery_db.STATE_ROLE(), address(openlotto));
 
         openlotto.grantRole(openlotto.LOTTERY_MANAGER_ROLE(), lottery_manager_role);
     }

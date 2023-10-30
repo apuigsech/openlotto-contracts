@@ -9,15 +9,18 @@ import { UD60x18, ud } from "@prb/math/UD60x18.sol";
 
 import "@models/TicketModel.sol";
 
+
+//    enum TicketState{ NONE , CLAIMED, WITHDRAWN }
+
 abstract contract LotteryOperatorInterface is AccessControl {
     using LotteryModel for LotteryModel.LotteryItem;
 
     bytes32 public constant OPERATOR_CONTROLER_ROLE = keccak256("OPERATOR_CONTROLER_ROLE");
 
-    uint8 public InitialTicketState;
+    uint8 public InitialTicketFlags;
 
     constructor() {
-        InitialTicketState = 0;
+        InitialTicketFlags = TicketModel.FLAG_NONE;
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
