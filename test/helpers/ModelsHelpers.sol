@@ -20,7 +20,7 @@ library ModelsHelpers {
         lottery.RoundBlocks = 100;
         lottery.BetPrice = 1 ether;
         lottery.PrizePoolShare[0] = ud(1e18);
-        lottery.Operator = new DummyLotteryOperator();
+        lottery.Operator = new TestLotteryOperator();
     }
 
     function newFilledTicket() internal pure returns (TicketModel.TicketItem memory ticket) {

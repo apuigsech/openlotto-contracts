@@ -370,6 +370,7 @@ contract testOpenLotto is Test {
         lottery.Operator = testOperator;
         vm.prank(lottery_manager_role);
         uint32 lottery_id = openlotto.CreateLottery(lottery);
+        testOperator.testSetInitialTicketFlags(lottery_id, TicketModel.FLAG_CLAIMED);
 
         for (uint256 i; i < 100; i++) {
             TicketModel.TicketItem memory ticket = TicketModel.newEmptyTicket();

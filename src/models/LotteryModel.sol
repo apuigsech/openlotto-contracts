@@ -17,11 +17,12 @@ abstract contract LotteryOperatorInterface is AccessControl {
 
     bytes32 public constant OPERATOR_CONTROLER_ROLE = keccak256("OPERATOR_CONTROLER_ROLE");
 
-    uint8 public InitialTicketFlags;
-
     constructor() {
-        InitialTicketFlags = TicketModel.FLAG_NONE;
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+    }
+
+    function GetInitialTicketFlags(uint32 id) public virtual returns(uint8 flags) {
+        flags = TicketModel.FLAG_NONE;
     }
 
     function CreateLottery(
