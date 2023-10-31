@@ -39,7 +39,7 @@ contract testOpenLotto is Test {
     ];
 
     function setUp() public {
-        openlotto = Deployments.deployAll(lottery_manager_role);
+        openlotto = Deployments.deployAllWithLotteryManager(lottery_manager_role);
 
         testOperator = new TestLotteryOperator();
         testOperator.grantRole(testOperator.OPERATOR_CONTROLER_ROLE(), address(openlotto));

@@ -5,7 +5,6 @@ import {
   newFilledLottery, newFilledTicket, TestProvider, newWallet
 } from './helpers.ts';
 
-const provider = new JsonRpcProvider("http://localhost:8545");
 const mnemonic = "test test test test test test test test test test test junk";
 
 const LOTTERY_MANAGER_IDX = 1
@@ -20,7 +19,7 @@ let main_provider;
 beforeAll(async () => {
   main_provider = new TestProvider(8545);
   await main_provider.wait();
-  await main_provider.runForgeScript('script/DeployOpenLottoWithSampleData.s.sol:DeployOpenLotto', '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80')
+  await main_provider.runForgeScript('script/DeployOpenLottoWithSampleData.s.sol:DeployOpenLotto', process.env.ADMIN_PRIV_KEY);
 }, 30000);
 
 afterAll(async () => {

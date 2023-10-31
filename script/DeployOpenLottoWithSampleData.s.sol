@@ -12,14 +12,15 @@ contract DummyLotteryOperator is BaseLotteryOperator {
 
 
 contract DeployOpenLotto is Script {
-    uint256 internal adminPrivateKey = vm.deriveKey(vm.envString("OPENLOTTO_MNEMONIC"), 0);
-    uint256 internal lotteryManagerPrivateKey = vm.deriveKey(vm.envString("OPENLOTTO_MNEMONIC"), 1);
-    uint256 internal numLotteries = vm.envUint("OPENLOTTO_NUM_LOTTERIES");
+    uint256 internal lotteryManagerPrivateKey = vm.envUint("LOTTERY_MANAGER_PRIV_KEY");
     address internal lotteryManagerAddress = vm.addr(lotteryManagerPrivateKey);
 
+    uint256 internal numLotteries = vm.envUint("NUM_LOTTERIES");
+
     function run() public {
-        vm.startBroadcast(adminPrivateKey);
-        OpenLotto openlotto = Deployments.deployAll(lotteryManagerAddress);
+        vm.startBroadcast();
+        OpenLotto openlotto = Deployments.deployAll();
+        openlotto.grantRole(openlotto.LOTTERY_MANAGER_ROLE(), lotteryManagerAddress);
         vm.stopBroadcast();
 
         vm.startBroadcast(lotteryManagerPrivateKey);
