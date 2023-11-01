@@ -1,9 +1,9 @@
 import { ethers, JsonRpcProvider, NonceManager } from "ethers";
-import { OpenLotto, LotteryItem, TicketItem } from '../../src/bindings/OpenLotto.ts';
+import { OpenLotto, LotteryItem, TicketItem } from '../../src/bindings/OpenLotto';
 
 import {
   newFilledLottery, newFilledTicket, TestProvider, newWallet
-} from './helpers.ts';
+} from './helpers';
 
 const mnemonic = "test test test test test test test test test test test junk";
 

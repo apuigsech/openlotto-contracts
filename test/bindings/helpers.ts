@@ -1,7 +1,7 @@
 import { JsonRpcProvider, HDNodeWallet, Mnemonic } from "ethers";
 import { execSync, spawn } from "child_process";
 
-import { OpenLotto, LotteryItem, TicketItem } from '../../src/bindings/OpenLotto.ts';
+import { OpenLotto, LotteryItem, TicketItem } from '../../src/bindings/OpenLotto';
 
 
 function newFilledLottery(operator): LotteryItem {

@@ -1,6 +1,10 @@
 {
   "name": "@apuigsech/openlotto-bindings",
-  "version": "0.1.0-alpha-2",
+  "version": "0.1.0-alpha-3",
+  "main": "dist/src/bindings/index.js",
+  "files": [
+    "dist"
+  ],
   "devDependencies": {
     "@babel/core": "^7.22.11",
     "@babel/preset-typescript": "^7.22.11",
@@ -14,10 +18,10 @@
     "test": "jest"
   },
   "dependencies": {
+    "@typechain/ethers-v6": "^0.5.1",
     "ethers": "^6.7.1"
   },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com"
   }
 }
-

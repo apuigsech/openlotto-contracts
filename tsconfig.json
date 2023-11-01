@@ -1,8 +1,15 @@
 {
   "compilerOptions": {
-    "allowImportingTsExtensions": true,
+    //"allowImportingTsExtensions": true,
     "types": ["jest"],
     "esModuleInterop": true,
-    "resolveJsonModule": true
-  }
+    "resolveJsonModule": true,
+    "target": "ES6",
+    "module": "CommonJS",
+    "outDir": "./dist",
+    "declaration": true, 
+    "sourceMap": true
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules"]
 }
