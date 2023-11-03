@@ -48,13 +48,12 @@ jobs:
         run: |
           forge build --extra-output-files abi
           npm install
+          tsc
           npm pack
       - name: release
         uses: softprops/action-gh-release@v1
         with:
           files: openlotto-bindings-*.tgz
-      - name: compile typescript
-        run: tsc
       - name: publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
