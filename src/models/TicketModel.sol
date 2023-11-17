@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.19;
+pragma solidity ^0.8.22;
 
 /// @title Library containing the data model and functions related to the TicketItem struct.
 library TicketModel {

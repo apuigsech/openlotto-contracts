@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.19;
+pragma solidity ^0.8.22;
 
 import "forge-std/Test.sol";
 
@@ -25,6 +25,8 @@ contract OpenLotto is ERC721, AccessControl, ReentrancyGuard {
     error TicketNotClaimed();
 
     error TicketAlreadyWithdrawn();
+
+    error InvalidID();
 
     bytes32 public constant LOTTERY_MANAGER_ROLE = keccak256("LOTTERY_MANAGER_ROLE");
 
