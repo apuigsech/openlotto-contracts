@@ -18,8 +18,7 @@
     "test": "jest"
   },
   "dependencies": {
-    "@typechain/ethers-v6": "^0.5.1",
-    "ethers": "^6.7.1"
+    "ethers": "^6.8.1"
   },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com"
