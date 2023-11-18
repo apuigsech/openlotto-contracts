@@ -44,7 +44,7 @@ contract testLotteryDatabase is Test {
     function testRead() public {
         LotteryModel.LotteryItem memory lottery;
 
-        vm.expectRevert(LotteryModelStorage.InvalidID.selector);
+        vm.expectRevert(Database.InvalidID.selector);
         lottery = database.Read(0);
 
         lottery = ModelsHelpers.newFilledLottery();
@@ -70,7 +70,7 @@ contract testLotteryDatabase is Test {
 
         lottery = ModelsHelpers.newFilledLottery();
         lottery.Name = "zero";
-        vm.expectRevert(LotteryModelStorage.InvalidID.selector);
+        vm.expectRevert(Database.InvalidID.selector);
         database.Update(0, lottery);
 
         lottery = ModelsHelpers.newFilledLottery();
@@ -91,7 +91,7 @@ contract testLotteryDatabase is Test {
     function testDelete() public {
         LotteryModel.LotteryItem memory lottery;
 
-        vm.expectRevert(LotteryModelStorage.InvalidID.selector);
+        vm.expectRevert(Database.InvalidID.selector);
         database.Delete(0);
 
         lottery = ModelsHelpers.newFilledLottery();
@@ -100,10 +100,10 @@ contract testLotteryDatabase is Test {
 
         database.Delete(id_1);
 
-        vm.expectRevert(LotteryModelStorage.InvalidID.selector);
+        vm.expectRevert(Database.InvalidID.selector);
         database.Read(id_1);
 
-        vm.expectRevert(LotteryModelStorage.InvalidID.selector);
+        vm.expectRevert(Database.InvalidID.selector);
         database.Delete(id_1);
     }
 }

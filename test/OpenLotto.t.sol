@@ -128,7 +128,7 @@ contract testOpenLotto is Test {
     function testReadLottery() public {
         LotteryModel.LotteryItem memory lottery;
 
-        vm.expectRevert(LotteryModelStorage.InvalidID.selector);
+        vm.expectRevert(Database.InvalidID.selector);
         lottery = openlotto.ReadLottery(0);
 
         vm.startPrank(lottery_manager_role);
@@ -168,7 +168,7 @@ contract testOpenLotto is Test {
 
         ticket = ModelsHelpers.newFilledTicket();
         ticket.LotteryID = 0;
-        vm.expectRevert(LotteryModelStorage.InvalidID.selector);
+        vm.expectRevert(Database.InvalidID.selector);
         openlotto.BuyTicket{ value: 1 ether }(ticket);
 
         ticket = ModelsHelpers.newFilledTicket();

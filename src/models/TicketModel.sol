@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.22;
 
+
 /// @title Library containing the data model and functions related to the TicketItem struct.
 library TicketModel {
     // Custom errors used for validation.
@@ -46,7 +47,7 @@ library TicketModelStorage {
 
     // Custom error used when an invalid ID is encountered.
     /// @dev Error thrown when an invalid ticket ID is encountered.
-    error InvalidID();
+    error InvalidItem();
 
     /// @dev Data structure to store multiple ticket items.
     struct TicketStorage {
@@ -78,15 +79,15 @@ library TicketModelStorage {
     )
         internal
         view
-        exist(data, id)
+        valid_item(data, id)
         returns (TicketModel.TicketItem storage ticket)
     {
         ticket = data.TicketMap[id];
     }
 
     /// @dev Modifier to check if a ticket item with a given ID exists in the storage.
-    modifier exist(TicketStorage storage data, uint32 id) {
-        if (data.TicketMap[id].LotteryRoundInit == 0) revert InvalidID();
+    modifier valid_item(TicketStorage storage data, uint32 id) {
+        if (data.TicketMap[id].LotteryRoundInit == 0) revert InvalidItem();
         _;
     }
 

@@ -88,7 +88,7 @@ contract testTicketModelStorage is Test {
 
         wrap.unset(1);
 
-        vm.expectRevert(TicketModelStorage.InvalidID.selector);
+        vm.expectRevert(TicketModelStorage.InvalidItem.selector);
         wrap.get(1);
     }
 
@@ -97,7 +97,7 @@ contract testTicketModelStorage is Test {
 
         TicketModel.TicketItem memory ticket;
 
-        vm.expectRevert(TicketModelStorage.InvalidID.selector);
+        vm.expectRevert(TicketModelStorage.InvalidItem.selector);
         wrap.get(1);
 
         ticket = ModelsHelpers.newFilledTicket();

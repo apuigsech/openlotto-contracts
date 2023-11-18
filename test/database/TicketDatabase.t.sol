@@ -40,7 +40,7 @@ contract testTicketDatabase is Test {
     function testRead() public {
         TicketModel.TicketItem memory ticket;
 
-        vm.expectRevert(TicketModelStorage.InvalidID.selector);
+        vm.expectRevert(Database.InvalidID.selector);
         ticket = database.Read(0);
 
         ticket = ModelsHelpers.newFilledTicket();

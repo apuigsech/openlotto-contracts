@@ -175,7 +175,7 @@ contract testLotteryModelStorage is Test {
 
         wrap.unset(1);
 
-        vm.expectRevert(LotteryModelStorage.InvalidID.selector);
+        vm.expectRevert(LotteryModelStorage.InvalidItem.selector);
         wrap.get(1);
     }
 
@@ -184,7 +184,7 @@ contract testLotteryModelStorage is Test {
 
         LotteryModel.LotteryItem memory lottery;
 
-        vm.expectRevert(LotteryModelStorage.InvalidID.selector);
+        vm.expectRevert(LotteryModelStorage.InvalidItem.selector);
         wrap.get(1);
 
         lottery = ModelsHelpers.newFilledLottery();

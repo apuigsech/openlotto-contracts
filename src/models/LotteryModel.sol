@@ -10,8 +10,6 @@ import { UD60x18, ud } from "@prb/math/UD60x18.sol";
 import "@models/TicketModel.sol";
 
 
-//    enum TicketState{ NONE , CLAIMED, WITHDRAWN }
-
 abstract contract LotteryOperatorInterface is AccessControl {
     using LotteryModel for LotteryModel.LotteryItem;
 
@@ -245,7 +243,7 @@ library LotteryModelStorage {
 
     // Custom error used when an invalid ID is encountered.
     /// @dev Error thrown when an invalid lottery ID is encountered.
-    error InvalidID();
+    error InvalidItem();
 
     /// @dev Data structure to store multiple lottery items.
     struct LotteryStorage {
@@ -277,15 +275,15 @@ library LotteryModelStorage {
     )
         internal
         view
-        exist(data, id)
+        valid_item(data, id)
         returns (LotteryModel.LotteryItem storage lottery)
     {
         lottery = data.LotteryMap[id];
     }
 
     /// @dev Modifier to check if a lottery item with a given ID exists in the storage.
-    modifier exist(LotteryStorage storage data, uint32 id) {
-        if (data.LotteryMap[id].Rounds == 0) revert InvalidID();
+    modifier valid_item(LotteryStorage storage data, uint32 id) {
+        if (data.LotteryMap[id].Rounds == 0) revert InvalidItem();
         _;
     }
 
