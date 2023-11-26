@@ -23,6 +23,13 @@ jobs:
       - name: test
         run: |
           forge build --extra-output-files abi
+          jq -s '[
+            .[0][] | select(.type == "event" or .type == "error")
+          ] + [
+            .[1][] | select(.type == "event" or .type == "error")
+          ] + .[2]' \
+          out/LotteryDatabase.sol/LotteryDatabase.abi.json out/TicketDatabase.sol/TicketDatabase.abi.json out/OpenLotto.sol/OpenLotto.abi.json > /tmp/OpenLotto.abi.json
+          mv /tmp/OpenLotto.abi.json out/OpenLotto.sol/OpenLotto.abi.json
           npm install
           npm test
   release-bindings:
@@ -47,6 +54,13 @@ jobs:
       - name: build
         run: |
           forge build --extra-output-files abi
+          jq -s '[
+            .[0][] | select(.type == "event" or .type == "error")
+          ] + [
+            .[1][] | select(.type == "event" or .type == "error")
+          ] + .[2]' \
+          out/LotteryDatabase.sol/LotteryDatabase.abi.json out/TicketDatabase.sol/TicketDatabase.abi.json out/OpenLotto.sol/OpenLotto.abi.json > /tmp/OpenLotto.abi.json
+          mv /tmp/OpenLotto.abi.json out/OpenLotto.sol/OpenLotto.abi.json
           npm install
           tsc
           npm pack

@@ -55,9 +55,7 @@ class OpenLotto {
 
     private resolveError(e): ErrorFragment {
         const interfaces = [
-            this.contract.interface,
-            this.lottery_db.interface,
-            this.ticket_db.interface
+            this.contract.interface
         ]
         for (let i = 0 ; i < interfaces.length ; i++) {
             let error = interfaces[i].getError(e);
