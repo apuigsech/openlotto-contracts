@@ -34,8 +34,8 @@ describe("CreateLottery", () => {
   beforeAll(async () => {
     provider = new TestProvider(undefined, main_provider)
     await provider.wait(500);
-    openlotto_manager = await OpenLotto.new(openLottoAddress, newWallet(provider, mnemonic, LOTTERY_MANAGER_IDX));
-    openlotto_user_1 = await OpenLotto.new(openLottoAddress, newWallet(provider, mnemonic, ALICE_IDX));
+    openlotto_manager = new OpenLotto(openLottoAddress, newWallet(provider, mnemonic, LOTTERY_MANAGER_IDX));
+    openlotto_user_1 = new OpenLotto(openLottoAddress, newWallet(provider, mnemonic, ALICE_IDX));
   });
 
   afterAll(async () => {
@@ -110,8 +110,8 @@ describe("ReadLottery", () => {
   beforeAll(async () => {
     provider = new TestProvider(undefined, main_provider)
     await provider.wait(500);
-    openlotto_manager = await OpenLotto.new(openLottoAddress, newWallet(provider, mnemonic, LOTTERY_MANAGER_IDX));
-    openlotto_user_1 = await OpenLotto.new(openLottoAddress, newWallet(provider, mnemonic, ALICE_IDX));
+    openlotto_manager = new OpenLotto(openLottoAddress, newWallet(provider, mnemonic, LOTTERY_MANAGER_IDX));
+    openlotto_user_1 = new OpenLotto(openLottoAddress, newWallet(provider, mnemonic, ALICE_IDX));
 
     let lottery = newFilledLottery(dummyOperator);
     lottery.Name = "dummy 1"
@@ -151,8 +151,8 @@ describe("BuyTicket", () => {
   beforeAll(async () => {
     provider = new TestProvider(undefined, main_provider)
     await provider.wait(500);
-    openlotto_manager = await OpenLotto.new(openLottoAddress, newWallet(provider, mnemonic, LOTTERY_MANAGER_IDX));
-    openlotto_user_1 = await OpenLotto.new(openLottoAddress, newWallet(provider, mnemonic, ALICE_IDX));
+    openlotto_manager = new OpenLotto(openLottoAddress, newWallet(provider, mnemonic, LOTTERY_MANAGER_IDX));
+    openlotto_user_1 = new OpenLotto(openLottoAddress, newWallet(provider, mnemonic, ALICE_IDX));
     
     let lottery = newFilledLottery(dummyOperator);
     lottery.InitBlock = BigInt(await provider.getBlockNumber());
@@ -229,8 +229,8 @@ describe("ReadTicket", () => {
   beforeAll(async () => {
     provider = new TestProvider(undefined, main_provider)
     await provider.wait(500);
-    openlotto_manager = await OpenLotto.new(openLottoAddress, newWallet(provider, mnemonic, LOTTERY_MANAGER_IDX));
-    openlotto_user_1 = await OpenLotto.new(openLottoAddress, newWallet(provider, mnemonic, ALICE_IDX));
+    openlotto_manager = new OpenLotto(openLottoAddress, newWallet(provider, mnemonic, LOTTERY_MANAGER_IDX));
+    openlotto_user_1 = new OpenLotto(openLottoAddress, newWallet(provider, mnemonic, ALICE_IDX));
 
     let lottery = newFilledLottery(dummyOperator);
     lottery.InitBlock = BigInt(await provider.getBlockNumber());

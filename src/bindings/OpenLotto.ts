@@ -8,41 +8,12 @@ import TicketDatabaseArtifact from "../../out/TicketDatabase.sol/TicketDatabase.
 class OpenLotto {
     contract: Contract;
 
-    lottery_db: Contract;
-    ticket_db: Contract;
-
-    private constructor(address: string, signer: Signer) {
+    constructor(address: string, signer: Signer) {
         try {
             this.contract = new ethers.Contract(address, OpenLottoArtifact, signer);
-            this.initContracts();
         } catch (error) {
             throw error;
         }
-    }
-
-    private async initContracts() {
-        try {
-            const lotteryDatabaseAddr = await this.contract.GetLotteryDatabaseAddr();
-            this.lottery_db = new ethers.Contract(lotteryDatabaseAddr, LotteryDatabaseArtifact);
-            const ticketDatabaseAddr = await this.contract.GetTicketDatabaseAddr();
-            this.ticket_db = new ethers.Contract(ticketDatabaseAddr, TicketDatabaseArtifact);
-        } catch (error) {
-            throw error;
-        }     
-    }
-
-    public static async new(address: string, signer: Signer): Promise<OpenLotto> {
-        const openlotto = new OpenLotto(address, signer);
-        await openlotto.initContracts();
-        return new Proxy(openlotto, {
-            get(target, p) {
-                if (p in target) {
-                    return target[p]
-                } else {
-                    // console.log("Forward Not Implemented yet:", typeof p, target[p]);
-                }
-            }
-        });
     }
 
     public static NewEmptyLottery(): LotteryItem {
@@ -53,24 +24,11 @@ class OpenLotto {
         return NewTicket.fromEmpty();
     }
 
-    private resolveError(e): ErrorFragment {
-        const interfaces = [
-            this.contract.interface
-        ]
-        for (let i = 0 ; i < interfaces.length ; i++) {
-            let error = interfaces[i].getError(e);
-            if (error != null) {
-                return error;
-            }
-        }
-        return null;
-    }
-
     public CreateLotteryAndWait(lottery: LotteryItem): Promise<number> {
         return this.contract.CreateLottery(lottery).then((tx) => {
             return tx.wait().then((receipt) => {
                 let ids = receipt.logs.map((log) => {
-                    let event = this.lottery_db.interface.parseLog(log);
+                    let event = this.contract.interface.parseLog(log);
                     if (event && event.name == 'CreatedItem' && event.args[0] == 'Lottery') {
                         return Number(event.args[1]);
                     }
@@ -81,7 +39,7 @@ class OpenLotto {
             });
         }).catch((error) =>{
             if (error.info.error.code == 3) {
-                throw new Error(this.resolveError(error.data).name);
+                throw new Error(this.contract.interface.getError(error.data).name);
             } else {
                 throw new Error(error.info.error.message);
             }
@@ -92,7 +50,7 @@ class OpenLotto {
         return this.contract.ReadLottery(id).then((result) => {
             return NewLottery.fromResult(result);
         }).catch((error) =>{
-            throw new Error(this.resolveError(error.data).name);
+            throw new Error(this.contract.interface.getError(error.data).name);
         });
     }
 
@@ -104,7 +62,7 @@ class OpenLotto {
         return this.contract.BuyTicket(ticket, { value: value }).then((tx) => {
             return tx.wait().then((receipt) => {
                 let ids = receipt.logs.map((log) => {
-                    let event = this.ticket_db.interface.parseLog(log);
+                    let event = this.contract.interface.parseLog(log);
                     if (event && event.name == 'CreatedItem' && event.args[0] == 'Ticket') {
                         return Number(event.args[1]);
                     }
@@ -115,7 +73,7 @@ class OpenLotto {
             });
         }).catch((error) =>{
             if (error.info.error.code == 3) {
-                throw new Error(this.resolveError(error.data).name);
+                throw new Error(this.contract.interface.getError(error.data).name);
             } else {
                 throw new Error(error.info.error.message);
             }
@@ -126,7 +84,7 @@ class OpenLotto {
         return this.contract.ReadTicket(id).then((result) => {
             return NewTicket.fromResult(result);
         }).catch((error) =>{
-            throw new Error(this.resolveError(error.data).name);
+            throw new Error(this.contract.interface.getError(error.data).name);
         });
     }
 
