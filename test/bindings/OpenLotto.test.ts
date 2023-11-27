@@ -18,12 +18,12 @@ let main_provider;
 
 beforeAll(async () => {
   main_provider = new TestProvider(8545);
-  await main_provider.wait();
+  await main_provider.wait(1000);
   await main_provider.runForgeScript('script/DeployOpenLottoWithSampleData.s.sol:DeployOpenLotto', process.env.ADMIN_PRIV_KEY);
 }, 30000);
 
 afterAll(async () => {
-  main_provider.exit();
+  main_provider.destroy();
 });
 
 
@@ -33,13 +33,13 @@ describe("CreateLottery", () => {
 
   beforeAll(async () => {
     provider = new TestProvider(undefined, main_provider)
-    await provider.wait();
+    await provider.wait(500);
     openlotto_manager = await OpenLotto.new(openLottoAddress, newWallet(provider, mnemonic, LOTTERY_MANAGER_IDX));
     openlotto_user_1 = await OpenLotto.new(openLottoAddress, newWallet(provider, mnemonic, ALICE_IDX));
   });
 
   afterAll(async () => {
-    provider.exit();
+    provider.destroy();
   });
 
 
@@ -109,7 +109,7 @@ describe("ReadLottery", () => {
 
   beforeAll(async () => {
     provider = new TestProvider(undefined, main_provider)
-    await provider.wait();
+    await provider.wait(500);
     openlotto_manager = await OpenLotto.new(openLottoAddress, newWallet(provider, mnemonic, LOTTERY_MANAGER_IDX));
     openlotto_user_1 = await OpenLotto.new(openLottoAddress, newWallet(provider, mnemonic, ALICE_IDX));
 
@@ -125,7 +125,7 @@ describe("ReadLottery", () => {
   }, 30000);
 
   afterAll(async () => {
-    provider.exit();
+    provider.destroy();
   });
 
   test("ReadLottery should throw InvalidID for an invalid id", async () => {
@@ -150,7 +150,7 @@ describe("BuyTicket", () => {
 
   beforeAll(async () => {
     provider = new TestProvider(undefined, main_provider)
-    await provider.wait();
+    await provider.wait(500);
     openlotto_manager = await OpenLotto.new(openLottoAddress, newWallet(provider, mnemonic, LOTTERY_MANAGER_IDX));
     openlotto_user_1 = await OpenLotto.new(openLottoAddress, newWallet(provider, mnemonic, ALICE_IDX));
     
@@ -163,7 +163,7 @@ describe("BuyTicket", () => {
   });
 
   afterAll(async () => {
-    provider.exit();
+    provider.destroy();
   });
 
   test("BuyTicket should throw InvalidID when LotteryID doesn't exist", async () => {
@@ -228,7 +228,7 @@ describe("ReadTicket", () => {
 
   beforeAll(async () => {
     provider = new TestProvider(undefined, main_provider)
-    await provider.wait();
+    await provider.wait(500);
     openlotto_manager = await OpenLotto.new(openLottoAddress, newWallet(provider, mnemonic, LOTTERY_MANAGER_IDX));
     openlotto_user_1 = await OpenLotto.new(openLottoAddress, newWallet(provider, mnemonic, ALICE_IDX));
 
@@ -257,7 +257,7 @@ describe("ReadTicket", () => {
   }, 30000);
 
   afterAll(async () => {
-    provider.exit();
+    provider.destroy();
   });
 
   test("ReadTicket should throw InvalidID for an invalid id", async () => {

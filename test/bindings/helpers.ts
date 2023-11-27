@@ -3,6 +3,9 @@ import { execSync, spawn } from "child_process";
 
 import { OpenLotto, LotteryItem, TicketItem } from '../../src/bindings/OpenLotto';
 
+function stall(duration) {
+    return new Promise((resolve) => { setTimeout(resolve, duration); });
+}
 
 function newFilledLottery(operator): LotteryItem {
     let lottery = OpenLotto.NewEmptyLottery();
@@ -30,15 +33,16 @@ class TestProvider extends JsonRpcProvider {
         if (!port) {
             port = Math.floor(Math.random() * 10000) + 10000;
         }
-        super(`http://localhost:${port}`);
         let args = ['--silent', '-p', `${port}`];
         if (fork) {
             args.push('-f', `${fork._getConnection().url}`);
         }
+        super(`http://localhost:${port}`);
         this['subprocess'] = spawn('anvil', args);
     }
 
-    async wait() {
+    async wait(time) {
+        await stall(time);
         while (true) {
             try {
                 await this.send('eth_chainId', []);
@@ -49,11 +53,11 @@ class TestProvider extends JsonRpcProvider {
         }
     }
 
-    async exit() {
+    async destroy() {
+        super.destroy();
         this['subprocess'].kill();
     }
     
-
     async runForgeScript(script: string, privkey: string) {
         const url = this._getConnection().url;
         const cmd = `forge script ${script} --rpc-url ${url} --private-key ${privkey} --broadcast`;
