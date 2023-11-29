@@ -26,8 +26,6 @@ contract OpenLotto is ERC721, AccessControl, ReentrancyGuard {
 
     error TicketAlreadyWithdrawn();
 
-    error InvalidID();
-
     bytes32 public constant LOTTERY_MANAGER_ROLE = keccak256("LOTTERY_MANAGER_ROLE");
 
     LotteryDatabase private lottery_db;

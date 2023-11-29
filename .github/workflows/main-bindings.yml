@@ -58,7 +58,7 @@ jobs:
             .[0][] | select(.type == "event" or .type == "error")
           ] + [
             .[1][] | select(.type == "event" or .type == "error")
-          ] + .[2]' \
+          ] + .[2] | unique_by(.name)' \
           out/LotteryDatabase.sol/LotteryDatabase.abi.json out/TicketDatabase.sol/TicketDatabase.abi.json out/OpenLotto.sol/OpenLotto.abi.json > /tmp/OpenLotto.abi.json
           mv /tmp/OpenLotto.abi.json out/OpenLotto.sol/OpenLotto.abi.json
           npm install

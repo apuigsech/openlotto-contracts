@@ -16,6 +16,13 @@ class OpenLotto {
         }
     }
 
+    private makeError(error) {
+        if (error.code == "CALL_EXCEPTION") {
+            error = this.contract.interface.makeError(error.data, error);
+        }
+        return error;
+    }
+
     public static NewEmptyLottery(): LotteryItem {
         return NewLottery.fromEmpty();
     }
@@ -35,14 +42,11 @@ class OpenLotto {
                 });
                 return ids[0];
             }).catch((error) =>{
-                throw new Error('Error in wait: ' + error);
+                throw error;
             });
         }).catch((error) =>{
-            if (error.info.error.code == 3) {
-                throw new Error(this.contract.interface.getError(error.data).name);
-            } else {
-                throw new Error(error.info.error.message);
-            }
+            error = this.makeError(error);
+            throw error;
         });
     }
 
@@ -50,7 +54,8 @@ class OpenLotto {
         return this.contract.ReadLottery(id).then((result) => {
             return NewLottery.fromResult(result);
         }).catch((error) =>{
-            throw new Error(this.contract.interface.getError(error.data).name);
+            error = this.makeError(error);
+            throw error;
         });
     }
 
@@ -69,14 +74,11 @@ class OpenLotto {
                 }); 
                 return ids[0]; 
             }).catch((error) =>{
-                throw new Error('Error in wait: ' + error);
+                throw error;
             });
         }).catch((error) =>{
-            if (error.info.error.code == 3) {
-                throw new Error(this.contract.interface.getError(error.data).name);
-            } else {
-                throw new Error(error.info.error.message);
-            }
+            error = this.makeError(error);
+            throw error;
         });
     }
 
@@ -84,7 +86,8 @@ class OpenLotto {
         return this.contract.ReadTicket(id).then((result) => {
             return NewTicket.fromResult(result);
         }).catch((error) =>{
-            throw new Error(this.contract.interface.getError(error.data).name);
+            error = this.makeError(error);
+            throw error;
         });
     }
 
