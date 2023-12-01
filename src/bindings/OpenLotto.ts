@@ -1,9 +1,7 @@
 import { Contract, ContractTransaction, ethers, Signer, ErrorFragment, NonceManager } from "ethers";
-import { LotteryItem, TicketItem, NewLottery, NewTicket } from "./models";
+import { Lottery, Ticket } from "./models";
 
 import OpenLottoArtifact from "../../out/OpenLotto.sol/OpenLotto.abi.json"
-import LotteryDatabaseArtifact from "../../out/LotteryDatabase.sol/LotteryDatabase.abi.json"
-import TicketDatabaseArtifact from "../../out/TicketDatabase.sol/TicketDatabase.abi.json"
 
 class OpenLotto {
     contract: Contract;
@@ -23,15 +21,15 @@ class OpenLotto {
         return error;
     }
 
-    public static NewEmptyLottery(): LotteryItem {
-        return NewLottery.fromEmpty();
+    public static NewEmptyLottery(): Lottery {
+        return Lottery.fromEmpty();
     }
 
-    public static NewEmptyTicket(): TicketItem {
-        return NewTicket.fromEmpty();
+    public static NewEmptyTicket(): Ticket {
+        return Ticket.fromEmpty();
     }
 
-    public CreateLotteryAndWait(lottery: LotteryItem): Promise<number> {
+    public CreateLotteryAndWait(lottery: Lottery): Promise<number> {
         return this.contract.CreateLottery(lottery).then((tx) => {
             return tx.wait().then((receipt) => {
                 let ids = receipt.logs.map((log) => {
@@ -50,20 +48,20 @@ class OpenLotto {
         });
     }
 
-    public ReadLottery(id: number): Promise<LotteryItem> {
+    public ReadLottery(id: number): Promise<Lottery> {
         return this.contract.ReadLottery(id).then((result) => {
-            return NewLottery.fromResult(result);
+            return Lottery.fromResult(result);
         }).catch((error) =>{
             error = this.makeError(error);
             throw error;
         });
     }
 
-    public BuyTicket(ticket: TicketItem, value: number): Promise<ContractTransaction> {
+    public BuyTicket(ticket: Ticket, value: number): Promise<ContractTransaction> {
         return this.contract.BuyTicket(ticket, { value: value });
     }
 
-    public BuyTicketAndWait(ticket: TicketItem, value: bigint): Promise<number> {
+    public BuyTicketAndWait(ticket: Ticket, value: bigint): Promise<number> {
         return this.contract.BuyTicket(ticket, { value: value }).then((tx) => {
             return tx.wait().then((receipt) => {
                 let ids = receipt.logs.map((log) => {
@@ -82,9 +80,9 @@ class OpenLotto {
         });
     }
 
-    public async ReadTicket(id: number): Promise<TicketItem> {
+    public async ReadTicket(id: number): Promise<Ticket> {
         return this.contract.ReadTicket(id).then((result) => {
-            return NewTicket.fromResult(result);
+            return Ticket.fromResult(result);
         }).catch((error) =>{
             error = this.makeError(error);
             throw error;
@@ -101,5 +99,5 @@ class OpenLotto {
 }
 
 export {
-    OpenLotto, LotteryItem, TicketItem
+    OpenLotto, Lottery, Ticket
 }

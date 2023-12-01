@@ -1,13 +1,13 @@
 import { JsonRpcProvider, HDNodeWallet, Mnemonic } from "ethers";
 import { execSync, spawn } from "child_process";
 
-import { OpenLotto, LotteryItem, TicketItem } from '../../src/bindings/OpenLotto';
+import { OpenLotto, Lottery, Ticket } from '../../src/bindings/OpenLotto';
 
 function stall(duration) {
     return new Promise((resolve) => { setTimeout(resolve, duration); });
 }
 
-function newFilledLottery(operator): LotteryItem {
+function newFilledLottery(operator): Lottery {
     let lottery = OpenLotto.NewEmptyLottery();
     lottery.Name = 'dummy';
     lottery.InitBlock = BigInt('10');
@@ -19,7 +19,7 @@ function newFilledLottery(operator): LotteryItem {
     return lottery;
 }
   
-function newFilledTicket(): TicketItem {
+function newFilledTicket(): Ticket {
     let ticket = OpenLotto.NewEmptyTicket();
     ticket.LotteryID = 1;
     ticket.LotteryRoundInit = BigInt('1');

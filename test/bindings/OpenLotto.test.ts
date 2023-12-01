@@ -1,5 +1,5 @@
 import { ethers, JsonRpcProvider, NonceManager } from "ethers";
-import { OpenLotto, LotteryItem, TicketItem } from '../../src/bindings/OpenLotto';
+import { OpenLotto } from '../../src/bindings/OpenLotto';
 
 import {
   newFilledLottery, newFilledTicket, TestProvider, newWallet

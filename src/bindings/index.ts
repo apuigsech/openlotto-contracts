@@ -1,1 +1,1 @@
-export { OpenLotto, LotteryItem, TicketItem } from './OpenLotto'
+export { OpenLotto, Lottery, Ticket } from './OpenLotto'

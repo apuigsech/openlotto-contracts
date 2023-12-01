@@ -1,4 +1,5 @@
-interface LotteryItem {
+
+class Lottery {
     Name: string;
     InitBlock: bigint;
     Rounds: number;
@@ -21,93 +22,46 @@ interface LotteryItem {
     ];
     Operator: string;
     Attributes: string;
-}
 
-interface TicketItem {
-    LotteryID: number;
-    LotteryRoundInit: bigint;
-    LotteryRoundFini: bigint;
-    NumBets: number;
-    Attributes: string;
-}
-
-class NewLotteryFactory {
-    public fromEmpty(): LotteryItem {
-        let lottery: LotteryItem = {
-            Name: '',
-            InitBlock: BigInt('0'),
-            Rounds: 0,
-            RoundBlocks: 0,
-            BetPrice: BigInt('0'),
-            JackpotMin: BigInt('0'),
-            DistributionPoolTo: [
-                '0x0000000000000000000000000000000000000000',
-                '0x0000000000000000000000000000000000000000',
-                '0x0000000000000000000000000000000000000000',
-                '0x0000000000000000000000000000000000000000',
-                '0x0000000000000000000000000000000000000000'
-            ],
-    
-            DistributionPoolShare: [
-                BigInt('0'),
-                BigInt('0'),
-                BigInt('0'),
-                BigInt('0'),
-                BigInt('0')
-            ],
-            PrizePoolShare: [
-                BigInt('0'),
-                BigInt('0'),
-                BigInt('0'),
-                BigInt('0'),
-                BigInt('0'),
-                BigInt('0'),
-                BigInt('0'),
-                BigInt('0'),
-                BigInt('0'),
-                BigInt('0'),
-                BigInt('0'),
-                BigInt('0'),
-                BigInt('0'),
-                BigInt('0'),
-                BigInt('0'),
-                BigInt('0'),
-                BigInt('0'),
-                BigInt('0'),
-                BigInt('0'),
-                BigInt('0')
-            ],
-            PrizePoolAttributes: [
-                '0x0000000000000000',
-                '0x0000000000000000',
-                '0x0000000000000000',
-                '0x0000000000000000',
-                '0x0000000000000000',
-                '0x0000000000000000',
-                '0x0000000000000000',
-                '0x0000000000000000',
-                '0x0000000000000000',
-                '0x0000000000000000',
-                '0x0000000000000000',
-                '0x0000000000000000',
-                '0x0000000000000000',
-                '0x0000000000000000',
-                '0x0000000000000000',
-                '0x0000000000000000',
-                '0x0000000000000000',
-                '0x0000000000000000',
-                '0x0000000000000000',
-                '0x0000000000000000'
-            ],
-            Operator: '0x0000000000000000000000000000000000000000',
-            Attributes: '0x00000000000000000000000000000000'
-        };
-        return lottery;
+    constructor() {
+        this.Name = '';
+        this.InitBlock = BigInt(0);
+        this.Rounds = 0;
+        this.RoundBlocks = 0;
+        this.BetPrice = BigInt(0);
+        this.JackpotMin = BigInt(0);
+        this.DistributionPoolTo = [
+            '0x0000000000000000000000000000000000000000',
+            '0x0000000000000000000000000000000000000000',
+            '0x0000000000000000000000000000000000000000',
+            '0x0000000000000000000000000000000000000000',
+            '0x0000000000000000000000000000000000000000'
+        ];
+        this.DistributionPoolShare = [
+            BigInt(0), BigInt(0), BigInt(0), BigInt(0), BigInt(0)
+        ];
+        this.PrizePoolShare = new Array(20).fill(BigInt(0)) as [
+            bigint, bigint, bigint, bigint, bigint,
+            bigint, bigint, bigint, bigint, bigint,
+            bigint, bigint, bigint, bigint, bigint,
+            bigint, bigint, bigint, bigint, bigint
+        ];
+        this.PrizePoolAttributes = new Array(20).fill('0x0000000000000000') as [
+            string, string, string, string, string,
+            string, string, string, string, string,
+            string, string, string, string, string,
+            string, string, string, string, string
+        ];
+        this.Operator = '0x0000000000000000000000000000000000000000';
+        this.Attributes = '0x00000000000000000000000000000000';
     }
 
-    public fromResult(result): LotteryItem {
-        let lottery = this.fromEmpty();
-    
+    public static fromEmpty(): Lottery {
+        return new Lottery();
+    }
+
+    public static fromResult(result: any): Lottery {
+        let lottery = Lottery.fromEmpty();
         lottery.Name = result[0];
         lottery.InitBlock = result[1];
         lottery.Rounds = result[2];
@@ -138,33 +92,36 @@ class NewLotteryFactory {
     }
 }
 
-let NewLottery = new NewLotteryFactory();
+class Ticket {
+    LotteryID: number;
+    LotteryRoundInit: bigint;
+    LotteryRoundFini: bigint;
+    NumBets: number;
+    Attributes: string;
 
-class NewTicketFactory {
-    public fromEmpty(): TicketItem {
-        let ticket: TicketItem = {
-            LotteryID: 0,
-            LotteryRoundInit: BigInt('0'),
-            LotteryRoundFini: BigInt('0'),
-            NumBets: 0,
-            Attributes: '0x0000000000000000'
-        };
-
-        return ticket;
+    constructor() {
+        this.LotteryID = 0;
+        this.LotteryRoundInit = BigInt(0);
+        this.LotteryRoundFini = BigInt(0);
+        this.NumBets = 0;
+        this.Attributes = '0x0000000000000000';
     }
 
-    public fromResult(result): TicketItem {
-        let ticket = this.fromEmpty();
+    public static fromEmpty(): Ticket {
+        return new Ticket();
+    }
+
+    public static fromResult(result: any): Ticket {
+        let ticket = Ticket.fromEmpty();
+   
         ticket.LotteryID = result[0];
         ticket.LotteryRoundInit = result[1];
         ticket.LotteryRoundFini = result[2];
         ticket.NumBets = result[3];
         ticket.Attributes = result[4];
+        
         return ticket;
     }
-
 }
 
-let NewTicket = new NewTicketFactory();
-
-export { LotteryItem, TicketItem, NewLottery, NewTicket }
+export { Lottery, Ticket }
