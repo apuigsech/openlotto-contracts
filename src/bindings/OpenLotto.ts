@@ -3,6 +3,20 @@ import { Lottery, Ticket } from "./models";
 
 import OpenLottoArtifact from "../../out/OpenLotto.sol/OpenLotto.abi.json"
 
+const OpenLottoOnChain = {
+    'sepolia': {
+        'version': {
+            'latest': {
+                'address': '0x21FBd49FfdDc52AB3e088813E48B2C3BB06A4528',
+                'operators': {
+                    'None': '0x0000000000000000000000000000000000000000',
+                    'Dummy': '0x32049dCEB926f5Dbda4e4215ce603e8252C69B21',
+                }
+            }
+        }
+    }
+}
+
 class OpenLotto {
     contract: Contract;
 
@@ -50,7 +64,7 @@ class OpenLotto {
 
     public ReadLottery(id: number): Promise<Lottery> {
         return this.contract.ReadLottery(id).then((result) => {
-            return Lottery.fromResult(result);
+            return Lottery.fromResult(result).withID(id).withOpenLotto(this);
         }).catch((error) =>{
             error = this.makeError(error);
             throw error;
@@ -82,7 +96,7 @@ class OpenLotto {
 
     public async ReadTicket(id: number): Promise<Ticket> {
         return this.contract.ReadTicket(id).then((result) => {
-            return Ticket.fromResult(result);
+            return Ticket.fromResult(result).withID(id).withOpenLotto(this);
         }).catch((error) =>{
             error = this.makeError(error);
             throw error;
@@ -99,5 +113,5 @@ class OpenLotto {
 }
 
 export {
-    OpenLotto, Lottery, Ticket
+    OpenLotto, OpenLottoOnChain, Lottery, Ticket
 }

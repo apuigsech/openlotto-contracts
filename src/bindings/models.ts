@@ -1,5 +1,10 @@
+import { OpenLotto } from './OpenLotto';
 
 class Lottery {
+    openlotto: OpenLotto | null;
+
+    ID: number;
+
     Name: string;
     InitBlock: bigint;
     Rounds: number;
@@ -24,6 +29,9 @@ class Lottery {
     Attributes: string;
 
     constructor() {
+        this.openlotto = null;
+        this.ID = 0;
+
         this.Name = '';
         this.InitBlock = BigInt(0);
         this.Rounds = 0;
@@ -90,9 +98,62 @@ class Lottery {
 
         return lottery;
     }
+
+    public withID(id: number): Lottery {
+        this.ID = id;
+        return this;
+    }
+
+    public withOpenLotto(openlotto: OpenLotto) {
+        this.openlotto = openlotto;
+        return this;
+    }
+
+    public async isActive() {
+        const currentBlockNumber = await this.openlotto.contract.getBlockNumber();
+        return this.isActiveOnBlock(currentBlockNumber);
+    }
+
+    public isActiveOnBlock(currentBlockNumber: bigint) {
+        const initBlock = this.InitBlock;
+        const finiBlock = initBlock + (BigInt(this.Rounds) * BigInt(this.RoundBlocks));
+        return initBlock <= currentBlockNumber && currentBlockNumber < finiBlock;
+    }
+
+    public async currentRound() {
+        const currentBlockNumber = await this.openlotto.contract.getBlockNumber();
+        return this.roundOnBlock(currentBlockNumber);
+    }
+
+    public roundOnBlock(currentBlockNumber: bigint) {
+        if (!this.isActiveOnBlock(currentBlockNumber)) {
+            return 0;
+        }
+        return BigInt(1) + (currentBlockNumber - this.InitBlock) / BigInt(this.RoundBlocks);
+    }
+
+    public async reserve() {
+        if (this.ID == 0 || this.openlotto == null) {
+            return 0;
+        }
+
+        return await this.openlotto.contract.GetReserve(this.ID);
+    }
+
+    public async roundJackPot(round: number) {
+        if (this.ID == 0 || this.openlotto == null) {
+            return 0;
+        }
+
+        return await this.openlotto.contract.GetRoundJackpot(this.ID, round);
+    }
 }
 
 class Ticket {
+    openlotto: OpenLotto | null;
+
+    ID: number;
+
     LotteryID: number;
     LotteryRoundInit: bigint;
     LotteryRoundFini: bigint;
@@ -100,6 +161,9 @@ class Ticket {
     Attributes: string;
 
     constructor() {
+        this.openlotto = null;
+        this.ID = 0;
+
         this.LotteryID = 0;
         this.LotteryRoundInit = BigInt(0);
         this.LotteryRoundFini = BigInt(0);
@@ -121,6 +185,15 @@ class Ticket {
         ticket.Attributes = result[4];
         
         return ticket;
+    }
+    public withID(id: number): Ticket {
+        this.ID = id;
+        return this;
+    }
+
+    public withOpenLotto(openlotto: OpenLotto) {
+        this.openlotto = openlotto;
+        return this;
     }
 }
 
