@@ -63,8 +63,9 @@ class OpenLotto {
     }
 
     public ReadLottery(id: number): Promise<Lottery> {
-        return this.contract.ReadLottery(id).then((result) => {
-            return Lottery.fromResult(result).withID(id).withOpenLotto(this);
+        return this.contract.ReadLottery(id).then(async (result) => {
+            let lottery = Lottery.fromResult(result).withID(id).withOpenLotto(this) as Lottery;
+            return await lottery.withAutoSync() as Lottery;
         }).catch((error) =>{
             error = this.makeError(error);
             throw error;
@@ -96,7 +97,7 @@ class OpenLotto {
 
     public async ReadTicket(id: number): Promise<Ticket> {
         return this.contract.ReadTicket(id).then((result) => {
-            return Ticket.fromResult(result).withID(id).withOpenLotto(this);
+            return Ticket.fromResult(result).withID(id).withOpenLotto(this).withAutoSync() as Ticket;
         }).catch((error) =>{
             error = this.makeError(error);
             throw error;
