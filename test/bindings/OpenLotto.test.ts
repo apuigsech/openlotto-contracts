@@ -139,6 +139,10 @@ describe("ReadLottery", () => {
     expect(lottery_2.Name).toEqual("dummy 2");
     let lottery_3 = await openlotto_user_1.ReadLottery(id_3);
     expect(lottery_3.Name).toEqual("dummy 3");
+
+    lottery_1.destroy();
+    lottery_2.destroy();
+    lottery_3.destroy();
   })
 })
 
@@ -155,7 +159,7 @@ describe("BuyTicket", () => {
     openlotto_user_1 = new OpenLotto(openLottoAddress, newWallet(provider, mnemonic, ALICE_IDX));
     
     let lottery = newFilledLottery(dummyOperator);
-    lottery.InitBlock = BigInt(await provider.getBlockNumber());
+    lottery.InitBlock = await provider.getBlockNumber();
     lottery.Rounds = 10;
     lottery.RoundBlocks = 100;
     lottery.BetPrice = BigInt('10000000000000000');
@@ -233,7 +237,7 @@ describe("ReadTicket", () => {
     openlotto_user_1 = new OpenLotto(openLottoAddress, newWallet(provider, mnemonic, ALICE_IDX));
 
     let lottery = newFilledLottery(dummyOperator);
-    lottery.InitBlock = BigInt(await provider.getBlockNumber());
+    lottery.InitBlock = await provider.getBlockNumber();
     lottery.Rounds = 10;
     lottery.RoundBlocks = 100;
     lottery.BetPrice = BigInt('10000000000000000');
@@ -271,5 +275,9 @@ describe("ReadTicket", () => {
     expect(ticket_2.LotteryRoundInit).toEqual(BigInt('2'));
     let ticket_3 = await openlotto_user_1.ReadTicket(id_3);
     expect(ticket_3.LotteryRoundInit).toEqual(BigInt('3'));
+
+    ticket_1.destroy();
+    ticket_2.destroy();
+    ticket_3.destroy();
   })
 })

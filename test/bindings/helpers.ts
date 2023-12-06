@@ -10,7 +10,7 @@ function stall(duration) {
 function newFilledLottery(operator): Lottery {
     let lottery = OpenLotto.NewEmptyLottery();
     lottery.Name = 'dummy';
-    lottery.InitBlock = BigInt('10');
+    lottery.InitBlock = 10;
     lottery.Rounds = 10;
     lottery.RoundBlocks = 100;
     lottery.BetPrice = BigInt('10000000000000000');

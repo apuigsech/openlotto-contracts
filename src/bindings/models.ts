@@ -1,12 +1,54 @@
 import { OpenLotto } from './OpenLotto';
 
-class Lottery {
+class Model {
     openlotto: OpenLotto | null;
-
     ID: number;
 
+    syncBlockNumber: Promise<number> | null;
+
+    private autoSyncInterval?: NodeJS.Timeout;
+
+    constructor() {
+        this.openlotto = null;
+        this.ID = 0;
+        this.syncBlockNumber = null;
+    }
+
+    public destroy() {
+        if (this.autoSyncInterval) {
+            clearInterval(this.autoSyncInterval);
+            this.autoSyncInterval = undefined;
+        }
+    }
+
+    public withID(id: number): Model {
+        this.ID = id;
+        return this;
+    }
+
+    public withOpenLotto(openlotto: OpenLotto): Model {
+        this.openlotto = openlotto;
+        return this;
+    }
+
+    public withAutoSync(freq: number = 5000): Model {
+        if (freq > 0) {
+            this.sync();
+            this.autoSyncInterval = setInterval(() => this.sync(), freq);
+        }
+        return this;
+    }
+
+    protected async sync() {
+        if (this.openlotto) {
+            this.syncBlockNumber = Promise.resolve(this.openlotto.contract.runner.provider.getBlockNumber());
+        }
+    } 
+}
+
+class Lottery extends Model {
     Name: string;
-    InitBlock: bigint;
+    InitBlock: number;
     Rounds: number;
     RoundBlocks: number;
     BetPrice: bigint;
@@ -29,11 +71,10 @@ class Lottery {
     Attributes: string;
 
     constructor() {
-        this.openlotto = null;
-        this.ID = 0;
+        super();
 
         this.Name = '';
-        this.InitBlock = BigInt(0);
+        this.InitBlock = 0;
         this.Rounds = 0;
         this.RoundBlocks = 0;
         this.BetPrice = BigInt(0);
@@ -99,37 +140,31 @@ class Lottery {
         return lottery;
     }
 
-    public withID(id: number): Lottery {
-        this.ID = id;
-        return this;
-    }
-
-    public withOpenLotto(openlotto: OpenLotto) {
-        this.openlotto = openlotto;
-        return this;
+    protected async sync() {
+        super.sync();
     }
 
     public async isActive() {
-        const currentBlockNumber = await this.openlotto.contract.getBlockNumber();
-        return this.isActiveOnBlock(currentBlockNumber);
+        const blockNumber = await this.syncBlockNumber;
+        return this.isActiveOnBlock(blockNumber);
     }
 
-    public isActiveOnBlock(currentBlockNumber: bigint) {
+    public isActiveOnBlock(blockNumber: number) {
         const initBlock = this.InitBlock;
-        const finiBlock = initBlock + (BigInt(this.Rounds) * BigInt(this.RoundBlocks));
-        return initBlock <= currentBlockNumber && currentBlockNumber < finiBlock;
+        const finiBlock = initBlock + (this.Rounds * this.RoundBlocks);
+        return initBlock <= blockNumber && blockNumber < finiBlock;
     }
 
     public async currentRound() {
-        const currentBlockNumber = await this.openlotto.contract.getBlockNumber();
-        return this.roundOnBlock(currentBlockNumber);
+        const blockNumber = await this.syncBlockNumber;
+        return this.roundOnBlock(blockNumber);
     }
 
-    public roundOnBlock(currentBlockNumber: bigint) {
-        if (!this.isActiveOnBlock(currentBlockNumber)) {
+    public roundOnBlock(blockNumber: number) {
+        if (!this.isActiveOnBlock(blockNumber)) {
             return 0;
         }
-        return BigInt(1) + (currentBlockNumber - this.InitBlock) / BigInt(this.RoundBlocks);
+        return Math.floor(1 + (blockNumber - Number(this.InitBlock)) / Number(this.RoundBlocks));
     }
 
     public async reserve() {
@@ -149,11 +184,7 @@ class Lottery {
     }
 }
 
-class Ticket {
-    openlotto: OpenLotto | null;
-
-    ID: number;
-
+class Ticket extends Model {
     LotteryID: number;
     LotteryRoundInit: bigint;
     LotteryRoundFini: bigint;
@@ -161,8 +192,7 @@ class Ticket {
     Attributes: string;
 
     constructor() {
-        this.openlotto = null;
-        this.ID = 0;
+        super();
 
         this.LotteryID = 0;
         this.LotteryRoundInit = BigInt(0);
@@ -186,14 +216,9 @@ class Ticket {
         
         return ticket;
     }
-    public withID(id: number): Ticket {
-        this.ID = id;
-        return this;
-    }
-
-    public withOpenLotto(openlotto: OpenLotto) {
-        this.openlotto = openlotto;
-        return this;
+    protected async sync() {
+        super.sync();
+        console.log("lottery sync");
     }
 }
 
