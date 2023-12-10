@@ -4,7 +4,7 @@ class Model {
     openlotto: OpenLotto | null;
     ID: number;
 
-    syncBlockNumber: Promise<number> | null;
+    syncBlockNumber: number | null;
 
     private autoSyncInterval?: NodeJS.Timeout;
 
@@ -39,11 +39,22 @@ class Model {
         return this;
     }
 
+    public async waitForSync(): Promise<Model> {
+        while(!this.isSync()) {
+            await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+        return this;
+    }
+
     protected async sync() {
         if (this.openlotto) {
-            this.syncBlockNumber = Promise.resolve(this.openlotto.contract.runner.provider.getBlockNumber());
+            this.syncBlockNumber = await this.openlotto.contract.runner.provider.getBlockNumber();
         }
-    } 
+    }
+
+    protected isSync() {
+        return (this.syncBlockNumber !== null);
+    }
 }
 
 class Lottery extends Model {
@@ -144,9 +155,13 @@ class Lottery extends Model {
         super.sync();
     }
 
-    public async isActive() {
-        const blockNumber = await this.syncBlockNumber;
-        return this.isActiveOnBlock(blockNumber);
+    public isActive() {
+        if (this.isSync()) {
+            const blockNumber = this.syncBlockNumber;
+            return this.isActiveOnBlock(blockNumber);
+        } else {
+            throw new Error("Not synchronized");
+        }
     }
 
     public isActiveOnBlock(blockNumber: number) {
