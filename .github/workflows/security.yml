@@ -21,7 +21,7 @@ jobs:
         with:
           submodules: recursive
       - uses: dcarbone/install-jq-action@v2.1.0
-      - uses: crytic/slither-action@v0.3.1
+      - uses: crytic/slither-action@v0.4.0
         with:
           slither-version: e3346c0dcd6fb8960ccbee8d153e99a0892b2925
           target: '.'
