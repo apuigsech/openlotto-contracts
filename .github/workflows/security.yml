@@ -20,7 +20,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
-      - uses: dcarbone/install-jq-action@v2.1.0
+      - uses: dcarbone/install-jq-action@v3.0.0
       - uses: crytic/slither-action@v0.4.0
         with:
           slither-version: e3346c0dcd6fb8960ccbee8d153e99a0892b2925
