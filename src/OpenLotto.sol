@@ -26,6 +26,8 @@ contract OpenLotto is ERC721, AccessControl, ReentrancyGuard {
 
     error TicketAlreadyWithdrawn();
 
+    error OperatorRoleMissing();
+
     bytes32 public constant LOTTERY_MANAGER_ROLE = keccak256("LOTTERY_MANAGER_ROLE");
 
     LotteryDatabase private lottery_db;
@@ -58,9 +60,12 @@ contract OpenLotto is ERC721, AccessControl, ReentrancyGuard {
         returns (uint32 id)
     {
         lottery.isValid();
+        if (!lottery.Operator.hasRole(lottery.Operator.OPERATOR_CONTROLER_ROLE(), address(this))) {
+            revert OperatorRoleMissing();
+        }
         id = lottery_db.Create(lottery);
         lottery.Operator.CreateLottery(id, lottery);
-        lottery_db.SetReserve(id, msg.value);
+        lottery_db.IncReserve(id, msg.value);
     }
 
     function ReadLottery(uint32 id) public view returns (LotteryModel.LotteryItem memory lottery) {

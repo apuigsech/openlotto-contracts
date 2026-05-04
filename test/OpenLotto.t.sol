@@ -501,6 +501,18 @@ contract testOpenLotto is Test {
 
     function testReadTicket() public { }
 
+    // CreateLottery must reject operators that did not grant OPERATOR_CONTROLER_ROLE to OpenLotto.
+    function testCreateLotteryRejectsOperatorWithoutRole() public {
+        LotteryModel.LotteryItem memory lottery = ModelsHelpers.newFilledLottery();
+        TestLotteryOperator badOperator = new TestLotteryOperator();
+        badOperator.testEnableAuthorization(); // now real role checks apply and OpenLotto lacks the role
+        lottery.Operator = badOperator;
+
+        vm.prank(lottery_manager_role);
+        vm.expectRevert(OpenLotto.OperatorRoleMissing.selector);
+        openlotto.CreateLottery(lottery);
+    }
+
     // Every wei paid in BuyTicket must end up accounted (reserve + jackpots), no dust loss on integer division.
     function testBuyTicketNoDustLoss() public {
         LotteryModel.LotteryItem memory lottery = ModelsHelpers.newFilledLottery();
