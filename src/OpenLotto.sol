@@ -5,7 +5,7 @@ import "forge-std/Test.sol";
 
 import "@openzeppelin/token/ERC721/ERC721.sol";
 import "@openzeppelin/access/AccessControl.sol";
-import "@openzeppelin/utils/ReentrancyGuard.sol";
+import "@openzeppelin/security/ReentrancyGuard.sol";
 
 import "@models/LotteryModel.sol";
 import "@models/TicketModel.sol";
