@@ -76,6 +76,10 @@ contract OpenLotto is ERC721, AccessControl, ReentrancyGuard {
         return lottery_db.Read(id);
     }
 
+    /// @notice Purchases a ticket for a lottery.
+    /// @dev Any `msg.value` above the required `ticketCost` is accepted as an implicit donation: the full amount
+    /// (including the excess) is split according to `DistributionPoolShare` and the remainder is added to the
+    /// per-round jackpots. There is no refund.
     function BuyTicket(TicketModel.TicketItem calldata ticket) public payable nonReentrant() returns (uint32 id) {
         ticket.isValid();
         LotteryModel.LotteryItem memory lottery = lottery_db.Read(ticket.LotteryID);
