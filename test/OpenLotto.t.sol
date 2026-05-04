@@ -554,6 +554,126 @@ contract testOpenLotto is Test {
         openlotto.CreateLottery(lottery);
     }
 
+    // WithdrawTicket must decrement the round jackpot by the amount paid.
+    function testWithdrawDecrementsJackpot() public {
+        LotteryModel.LotteryItem memory lottery = LotteryModel.newEmptyLottery();
+        lottery.Name = "dec";
+        lottery.InitBlock = block.number;
+        lottery.Rounds = 1;
+        lottery.RoundBlocks = 100;
+        lottery.BetPrice = 1 ether;
+        lottery.PrizePoolShare[0] = ud(1e18);
+        lottery.Operator = testOperator;
+        vm.prank(lottery_manager_role);
+        uint32 lottery_id = openlotto.CreateLottery(lottery);
+
+        TicketModel.TicketItem memory ticket = TicketModel.newEmptyTicket();
+        ticket.LotteryID = lottery_id;
+        ticket.LotteryRoundInit = 1;
+        ticket.LotteryRoundFini = 1;
+        ticket.NumBets = 1;
+        hoax(player_accounts[0], 1 ether);
+        uint32 ticket_id = openlotto.BuyTicket{ value: 1 ether }(ticket);
+
+        uint32[] memory winners = new uint32[](1);
+        winners[0] = 1;
+        testOperator._setWinnersCountTestData(lottery_id, winners);
+        testOperator._setTicketPrizesTestData(ticket_id, 1, 1);
+
+        vm.roll(lottery.resolutionBlock(1) + 1);
+        vm.prank(address(testOperator));
+        openlotto.ClaimTicket(ticket_id, 1);
+
+        uint256 jackpotBefore = openlotto.GetRoundJackpot(lottery_id, 1);
+        uint256 playerBefore = player_accounts[0].balance;
+        openlotto.WithdrawTicket(ticket_id, 1);
+        uint256 paid = player_accounts[0].balance - playerBefore;
+
+        assertEq(paid, jackpotBefore);
+        assertEq(openlotto.GetRoundJackpot(lottery_id, 1), 0);
+    }
+
+    // If the receiver of the prize rejects the payment, the withdrawal must revert so the user can retry.
+    function testWithdrawRevertsOnFailedTransfer() public {
+        RejectingReceiver receiver = new RejectingReceiver();
+
+        LotteryModel.LotteryItem memory lottery = LotteryModel.newEmptyLottery();
+        lottery.Name = "fail";
+        lottery.InitBlock = block.number;
+        lottery.Rounds = 1;
+        lottery.RoundBlocks = 100;
+        lottery.BetPrice = 1 ether;
+        lottery.PrizePoolShare[0] = ud(1e18);
+        lottery.Operator = testOperator;
+        vm.prank(lottery_manager_role);
+        uint32 lottery_id = openlotto.CreateLottery(lottery);
+
+        TicketModel.TicketItem memory ticket = TicketModel.newEmptyTicket();
+        ticket.LotteryID = lottery_id;
+        ticket.LotteryRoundInit = 1;
+        ticket.LotteryRoundFini = 1;
+        ticket.NumBets = 1;
+        hoax(address(receiver), 1 ether);
+        uint32 ticket_id = openlotto.BuyTicket{ value: 1 ether }(ticket);
+
+        uint32[] memory winners = new uint32[](1);
+        winners[0] = 1;
+        testOperator._setWinnersCountTestData(lottery_id, winners);
+        testOperator._setTicketPrizesTestData(ticket_id, 1, 1);
+
+        vm.roll(lottery.resolutionBlock(1) + 1);
+        vm.prank(address(testOperator));
+        openlotto.ClaimTicket(ticket_id, 1);
+
+        vm.expectRevert(OpenLotto.WithdrawFailed.selector);
+        openlotto.WithdrawTicket(ticket_id, 1);
+    }
+
+    // The contract balance must always equal sum(reserves) + sum(roundJackpots).
+    function testAccountingInvariantAfterBuyAndWithdraw() public {
+        LotteryModel.LotteryItem memory lottery = LotteryModel.newEmptyLottery();
+        lottery.Name = "inv";
+        lottery.InitBlock = block.number;
+        lottery.Rounds = 3;
+        lottery.RoundBlocks = 100;
+        lottery.BetPrice = 1 ether;
+        lottery.PrizePoolShare[0] = ud(1e18);
+        lottery.DistributionPoolTo[0] = address(0); // reserve
+        lottery.DistributionPoolShare[0] = ud(0.1e18);
+        lottery.Operator = testOperator;
+        hoax(lottery_manager_role, 5 ether);
+        uint32 lottery_id = openlotto.CreateLottery{ value: 5 ether }(lottery);
+
+        TicketModel.TicketItem memory ticket = TicketModel.newEmptyTicket();
+        ticket.LotteryID = lottery_id;
+        ticket.LotteryRoundInit = 1;
+        ticket.LotteryRoundFini = 3;
+        ticket.NumBets = 1;
+        hoax(player_accounts[0], 4 ether);
+        uint32 ticket_id = openlotto.BuyTicket{ value: 3 ether + 7 }(ticket);
+
+        _assertAccountingInvariant(lottery_id, 3);
+
+        uint32[] memory winners = new uint32[](1);
+        winners[0] = 1;
+        testOperator._setWinnersCountTestData(lottery_id, winners);
+        testOperator._setTicketPrizesTestData(ticket_id, 1, 1);
+        vm.roll(lottery.resolutionBlock(1) + 1);
+        vm.prank(address(testOperator));
+        openlotto.ClaimTicket(ticket_id, 1);
+        openlotto.WithdrawTicket(ticket_id, 1);
+
+        _assertAccountingInvariant(lottery_id, 3);
+    }
+
+    function _assertAccountingInvariant(uint32 lottery_id, uint32 rounds) internal {
+        uint256 accounted = openlotto.GetReserve(lottery_id);
+        for (uint32 r = 1; r <= rounds; r++) {
+            accounted += openlotto.GetRoundJackpot(lottery_id, r);
+        }
+        assertEq(accounted, address(openlotto).balance);
+    }
+
     // Every wei paid in BuyTicket must end up accounted (reserve + jackpots), no dust loss on integer division.
     function testBuyTicketNoDustLoss() public {
         LotteryModel.LotteryItem memory lottery = ModelsHelpers.newFilledLottery();
@@ -576,5 +696,11 @@ contract testOpenLotto is Test {
             totalJackpots += openlotto.GetRoundJackpot(lottery_id, r);
         }
         assertEq(totalJackpots + openlotto.GetReserve(lottery_id), payment);
+    }
+}
+
+contract RejectingReceiver {
+    receive() external payable {
+        revert("nope");
     }
 }

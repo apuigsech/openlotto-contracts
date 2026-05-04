@@ -30,6 +30,8 @@ contract OpenLotto is ERC721, AccessControl, ReentrancyGuard {
 
     error UnauthorizedOperator();
 
+    error WithdrawFailed();
+
     bytes32 public constant LOTTERY_MANAGER_ROLE = keccak256("LOTTERY_MANAGER_ROLE");
 
     LotteryDatabase private lottery_db;
@@ -150,19 +152,29 @@ contract OpenLotto is ERC721, AccessControl, ReentrancyGuard {
         uint32 ticketPrizes = lottery.Operator.TicketPrizes(ticket.LotteryID, lottery, id, ticket, round);
         uint32[] memory winnersCount = lottery.Operator.LotteryWinnersCount(ticket.LotteryID, lottery, round);
 
+        // Snapshot the jackpot the first time anybody withdraws from this round so later withdrawals share the same
+        // pot even as we decrement the live jackpot with each payout.
+        uint256 jackpotSnapshot = lottery_db.GetRoundJackpotSnapshot(ticket.LotteryID, round);
+        if (jackpotSnapshot == 0) {
+            jackpotSnapshot = lottery_db.GetRoundJackpot(ticket.LotteryID, round);
+            lottery_db.SetRoundJackpotSnapshot(ticket.LotteryID, round, jackpotSnapshot);
+        }
+
         uint256 withdrawAmount = 0;
         for (uint32 i = 0; i < winnersCount.length; i++) {
             if (winnersCount[i] > 0) {
                 if ((ticketPrizes & uint32(1 << i)) != 0) {
-                    withdrawAmount = withdrawAmount + (ud(lottery_db.GetRoundJackpot(ticket.LotteryID, round)) * lottery.PrizePoolShare[i]).unwrap() / winnersCount[i];
+                    withdrawAmount = withdrawAmount + (ud(jackpotSnapshot) * lottery.PrizePoolShare[i]).unwrap() / winnersCount[i];
                 }
             }
         }
 
         ticket_db.SetRoundFlags(id, round, TicketModel.FLAG_WITHDRAWN, false);
-
-        // lottery_db.DecReserve(ticket.LotteryID, withdrawAmount);
-        payable(ownerOf(id)).call{ value: withdrawAmount }("");
+        if (withdrawAmount > 0) {
+            lottery_db.DecRoundJackpot(ticket.LotteryID, round, withdrawAmount);
+            (bool sent,) = payable(ownerOf(id)).call{ value: withdrawAmount }("");
+            if (!sent) revert WithdrawFailed();
+        }
     }
 
     function GetReserve(uint32 id) public view returns(uint256) {

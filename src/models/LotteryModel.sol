@@ -144,6 +144,7 @@ library LotteryModel {
     struct LotteryState {
         uint256 Reserve;
         mapping(uint32 => uint256) RoundJackpot;
+        mapping(uint32 => uint256) RoundJackpotSnapshot;
     }
 
     function MAX_DISTRIBUTIONPOOL() internal pure returns (uint8) {
