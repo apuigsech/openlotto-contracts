@@ -28,6 +28,8 @@ contract OpenLotto is ERC721, AccessControl, ReentrancyGuard {
 
     error OperatorRoleMissing();
 
+    error UnauthorizedOperator();
+
     bytes32 public constant LOTTERY_MANAGER_ROLE = keccak256("LOTTERY_MANAGER_ROLE");
 
     LotteryDatabase private lottery_db;
@@ -113,7 +115,6 @@ contract OpenLotto is ERC721, AccessControl, ReentrancyGuard {
                     ? remainingValue.unwrap() - valuePerRound * (roundsCount - 1)
                     : valuePerRound;
             lottery_db.IncRoundJackpot(ticket.LotteryID, round, roundContribution);
-            ticket_db.SetRoundFlags(id, round, lottery.Operator.GetInitialTicketFlags(ticket.LotteryID), true);
         }
 
         _mint(msg.sender, id);
@@ -128,6 +129,15 @@ contract OpenLotto is ERC721, AccessControl, ReentrancyGuard {
         LotteryModel.LotteryItem memory lottery = lottery_db.Read(ticket.LotteryID);
 
         return lottery.Operator.TicketPrizes(ticket.LotteryID, lottery, id, ticket, round);
+    }
+
+    /// @notice Marks a ticket as claimed for a given round. Can only be called by the lottery's operator; serves as the
+    /// explicit signal that the operator has resolved the round and recognises this ticket as eligible to withdraw.
+    function ClaimTicket(uint32 id, uint32 round) public {
+        TicketModel.TicketItem memory ticket = ticket_db.Read(id);
+        LotteryModel.LotteryItem memory lottery = lottery_db.Read(ticket.LotteryID);
+        if (msg.sender != address(lottery.Operator)) revert UnauthorizedOperator();
+        ticket_db.SetRoundFlags(id, round, TicketModel.FLAG_CLAIMED, false);
     }
 
     function WithdrawTicket(uint32 id, uint32 round) public nonReentrant() {

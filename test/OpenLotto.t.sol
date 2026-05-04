@@ -370,7 +370,6 @@ contract testOpenLotto is Test {
         lottery.Operator = testOperator;
         vm.prank(lottery_manager_role);
         uint32 lottery_id = openlotto.CreateLottery(lottery);
-        testOperator.testSetInitialTicketFlags(lottery_id, TicketModel.FLAG_CLAIMED);
 
         for (uint256 i; i < 100; i++) {
             TicketModel.TicketItem memory ticket = TicketModel.newEmptyTicket();
@@ -395,6 +394,8 @@ contract testOpenLotto is Test {
 
         testOperator._setWinnersCountTestData(lottery_id, WinnersCountTestData);
         testOperator._setTicketPrizesTestData(10, round, 1); // 00001
+        vm.prank(address(testOperator));
+        openlotto.ClaimTicket(10, round);
         openlotto.WithdrawTicket(10, round);
         vm.expectRevert(OpenLotto.TicketAlreadyWithdrawn.selector);
         openlotto.WithdrawTicket(10, round);
@@ -408,6 +409,11 @@ contract testOpenLotto is Test {
         testOperator._setTicketPrizesTestData(12, round, 4); // 00100
         testOperator._setTicketPrizesTestData(13, round, 8); // 01000
         testOperator._setTicketPrizesTestData(14, round, 16); // 10000
+
+        for (uint32 i = 1; i <= 100; i++) {
+            vm.prank(address(testOperator));
+            openlotto.ClaimTicket(i, round);
+        }
 
         /**
          * - Pot: 100
@@ -458,6 +464,11 @@ contract testOpenLotto is Test {
         testOperator._setTicketPrizesTestData(12, round, 24); // 11000
         testOperator._setTicketPrizesTestData(13, round, 16); // 10000
 
+        for (uint32 i = 1; i <= 100; i++) {
+            vm.prank(address(testOperator));
+            openlotto.ClaimTicket(i, round);
+        }
+
         /**
          * - Pot: 100
          *             - Win 0:   30
@@ -500,6 +511,36 @@ contract testOpenLotto is Test {
     }
 
     function testReadTicket() public { }
+
+    // ClaimTicket must only be callable by the lottery's operator.
+    function testClaimTicketUnauthorized() public {
+        LotteryModel.LotteryItem memory lottery = ModelsHelpers.newFilledLottery();
+        lottery.InitBlock = block.number;
+        vm.prank(lottery_manager_role);
+        uint32 lottery_id = openlotto.CreateLottery(lottery);
+
+        TicketModel.TicketItem memory ticket = ModelsHelpers.newFilledTicket();
+        ticket.LotteryID = lottery_id;
+        uint32 ticket_id = openlotto.BuyTicket{ value: 1 ether }(ticket);
+
+        vm.expectRevert(OpenLotto.UnauthorizedOperator.selector);
+        openlotto.ClaimTicket(ticket_id, 1);
+    }
+
+    // WithdrawTicket must revert if the ticket has not been claimed by the operator.
+    function testWithdrawBeforeClaimReverts() public {
+        LotteryModel.LotteryItem memory lottery = ModelsHelpers.newFilledLottery();
+        lottery.InitBlock = block.number;
+        vm.prank(lottery_manager_role);
+        uint32 lottery_id = openlotto.CreateLottery(lottery);
+
+        TicketModel.TicketItem memory ticket = ModelsHelpers.newFilledTicket();
+        ticket.LotteryID = lottery_id;
+        uint32 ticket_id = openlotto.BuyTicket{ value: 1 ether }(ticket);
+
+        vm.expectRevert(OpenLotto.TicketNotClaimed.selector);
+        openlotto.WithdrawTicket(ticket_id, 1);
+    }
 
     // CreateLottery must reject operators that did not grant OPERATOR_CONTROLER_ROLE to OpenLotto.
     function testCreateLotteryRejectsOperatorWithoutRole() public {

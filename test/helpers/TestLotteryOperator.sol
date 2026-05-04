@@ -28,17 +28,6 @@ contract TestLotteryOperator is BaseLotteryOperator {
     }
 
 
-    mapping (uint32 => uint8) InitialTicketFlags;
-
-    function testSetInitialTicketFlags(uint32 lottery_id, uint8 flags) public {
-        InitialTicketFlags[lottery_id] = flags;
-    }
-
-    function GetInitialTicketFlags(uint32 lottery_id) public override returns(uint8 flags) {
-        flags = InitialTicketFlags[lottery_id];
-    }
-
-
     // ticket_id => round => prizes
     mapping(uint32 => mapping(uint32 => uint32)) TicketPrizesTestData;
 

@@ -19,10 +19,6 @@ abstract contract LotteryOperatorInterface is AccessControl {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
-    function GetInitialTicketFlags(uint32 id) public virtual returns(uint8 flags) {
-        flags = TicketModel.FLAG_NONE;
-    }
-
     function CreateLottery(
         uint32 id,
         LotteryModel.LotteryItem memory lottery
