@@ -102,7 +102,12 @@ contract OpenLotto is ERC721, AccessControl, ReentrancyGuard {
 
         uint256 valuePerRound = remainingValue.unwrap() / roundsCount;
         for (uint32 round = ticket.LotteryRoundInit; round <= ticket.LotteryRoundFini; round++) {
-            lottery_db.IncRoundJackpot(ticket.LotteryID, round, valuePerRound);
+            // Dust from integer division is added to the last round so the contract does not keep unaccounted wei.
+            uint256 roundContribution =
+                round == ticket.LotteryRoundFini
+                    ? remainingValue.unwrap() - valuePerRound * (roundsCount - 1)
+                    : valuePerRound;
+            lottery_db.IncRoundJackpot(ticket.LotteryID, round, roundContribution);
             ticket_db.SetRoundFlags(id, round, lottery.Operator.GetInitialTicketFlags(ticket.LotteryID), true);
         }
 

@@ -500,4 +500,28 @@ contract testOpenLotto is Test {
     }
 
     function testReadTicket() public { }
+
+    // Every wei paid in BuyTicket must end up accounted (reserve + jackpots), no dust loss on integer division.
+    function testBuyTicketNoDustLoss() public {
+        LotteryModel.LotteryItem memory lottery = ModelsHelpers.newFilledLottery();
+        lottery.Rounds = 7;
+        lottery.BetPrice = 1 ether;
+        vm.prank(lottery_manager_role);
+        uint32 lottery_id = openlotto.CreateLottery(lottery);
+
+        TicketModel.TicketItem memory ticket = ModelsHelpers.newFilledTicket();
+        ticket.LotteryID = lottery_id;
+        ticket.LotteryRoundInit = 1;
+        ticket.LotteryRoundFini = 7;
+
+        // 7 ether + 1 wei: the extra wei is a donation and must end up in the last-round jackpot as dust.
+        uint256 payment = 7 ether + 1;
+        openlotto.BuyTicket{ value: payment }(ticket);
+
+        uint256 totalJackpots;
+        for (uint32 r = 1; r <= 7; r++) {
+            totalJackpots += openlotto.GetRoundJackpot(lottery_id, r);
+        }
+        assertEq(totalJackpots + openlotto.GetReserve(lottery_id), payment);
+    }
 }
